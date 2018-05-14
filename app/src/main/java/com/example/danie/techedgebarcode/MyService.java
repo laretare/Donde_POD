@@ -46,7 +46,7 @@ public class MyService extends IntentService {
     private LocationManager locationManager = null;
     private static final int locationUpdateTime = 500;
     private static final float location_Distance = 10f;
-    private FusedLocationProviderClient mFusedLocationClient;
+
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
@@ -55,11 +55,12 @@ public class MyService extends IntentService {
      */
     public MyService() {
         super("DondePod Location");
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
     }
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
+        stopService(new Intent(getApplicationContext(), UserService.class));
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
         Intent notifcationIntent = new Intent(getApplicationContext(), MyService.class);
         createNotificationChannel();
@@ -88,58 +89,7 @@ public class MyService extends IntentService {
 
 
         } else {
-            //  get user's current location
-            LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-            LocationListener locationListener = new LocationListener() {
-                public void onLocationChanged(Location location) {
-                    // Called when a new location is found by the network location provider.
-                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "DondePod")
-                            .setContentTitle("User location")
-                            .setContentText("Error No permission granted for location")
-                            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
-                    notificationManager.notify(1, mBuilder.build());
-                }
-
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                }
-
-                @Override
-                public void onProviderEnabled(String provider) {
-
-                }
-
-                @Override
-                public void onProviderDisabled(String provider) {
-
-                }
-            };
-
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this, "DondePod")
-                        .setContentTitle("User location")
-                        .setContentText("Error No permission granted for location")
-                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-                notificationManager.notify(1, mBuilder.build());
-                return;
-            }
-            if (locationManager != null) {
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, locationListener);
-            }
-
         }
-
     }
     private void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because

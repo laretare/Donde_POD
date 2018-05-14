@@ -46,6 +46,7 @@
 
         </activity>
         <service android:name=".MyService" android:process=":my_service" />
+        <service android:name=".UserService" android:process=":user_service" />
     </application>
 
 </manifest>

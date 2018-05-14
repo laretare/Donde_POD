@@ -12,12 +12,14 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 
 
-import com.example.danie.techedgebarcode.driver.DriverActivity;
+
 import com.example.danie.techedgebarcode.models.Destination;
 import com.example.danie.techedgebarcode.models.Origin;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.vision.barcode.Barcode;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineListener;
 import com.mapbox.android.core.location.LocationEnginePriority;
@@ -45,8 +47,6 @@ import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
-import com.mapbox.services.android.navigation.ui.v5.NavigationView;
-import com.mapbox.services.android.navigation.ui.v5.NavigationViewOptions;
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
@@ -83,6 +83,8 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     private PendingIntent mGeofencePendingIntent;
     private Button button;
     private GeofencingClient mGeofencingClient;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest locationRequest;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -142,8 +144,18 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
                         public void onClick(View v) {
                             Point origin = originPosition;
                             Point destination = destinationPosition;
+                            Geofence geofence = new Geofence.Builder()
+                                    .setRequestId("Destination")
+                                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
+                                    .setCircularRegion(lat, lng, 10f)
+                                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                                    .build();
+                            locationRequest = LocationRequest.create()
+                                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                                    .setInterval(1000)
+                                    .setFastestInterval(1000);
                             getGeofencePendingIntent();
-
+                            startService(new Intent(getApplicationContext(), UserService.class));
 
 
 
@@ -164,6 +176,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             });
         }
     }
+
     private void getRoute(Point origin, Point destination) {
         NavigationRoute.builder()
                 .accessToken(Mapbox.getAccessToken())
@@ -303,7 +316,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         }
     }
 
-
+// gets the lat and lng from a location
     public void getLatLongFromPlace(String place) {
         try {
             Geocoder selected_place_geocoder = new Geocoder(getApplicationContext());
