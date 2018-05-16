@@ -1,7 +1,12 @@
 package com.example.danie.techedgebarcode;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -9,17 +14,22 @@ import android.os.Bundle;
 
 import android.support.annotation.NonNull;
 
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-
 
 
 import com.example.danie.techedgebarcode.models.Destination;
 import com.example.danie.techedgebarcode.models.Origin;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineListener;
 import com.mapbox.android.core.location.LocationEnginePriority;
@@ -63,7 +73,7 @@ import retrofit2.Response;
  * Created by danie on 1/25/2018.
  */
 
-public class MapLookup extends AppCompatActivity implements LocationEngineListener, PermissionsListener {
+public class MapLookup extends AppCompatActivity implements LocationEngineListener, PermissionsListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private MapView map;
     private MapboxMap mMap;
     private PermissionsManager permissionsManager;
@@ -82,12 +92,15 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     private NavigationMapRoute navigationMapRoute;
     private PendingIntent mGeofencePendingIntent;
     private Button button;
+    private Geofence geofence;
     private GeofencingClient mGeofencingClient;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest locationRequest;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mGoogleApiClient = new GoogleApiClient.Builder(this, this, this).addApi(LocationServices.API).build();
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.scanned);
         map = (MapView) findViewById(R.id.mapView);
@@ -118,20 +131,21 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
 
             }
         });*/
-        if(destination == null){
-            Toast.makeText(getApplicationContext(), "Invaild Barcode", Toast.LENGTH_LONG ).show();
+        if (destination == null) {
+            Toast.makeText(getApplicationContext(), "Invaild Barcode", Toast.LENGTH_LONG).show();
             finish();
 
-        }
-        else {
-            getLatLongFromPlace(destination.getAddress());
+        } else {
+
             map.onCreate(savedInstanceState);
             map.getMapAsync(new OnMapReadyCallback() {
                 @Override
                 public void onMapReady(final MapboxMap mapboxMap) {
                     mMap = mapboxMap;
                     enableLocationPlugin();
-                    originCoord = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
+                    getLatLongFromPlace(origin.getAddress());
+                    originCoord = new LatLng(lat, lng);
+                    getLatLongFromPlace(destination.getAddress());
                     destinationCoord = new LatLng(lat, lng);
                     destinationMarker = mapboxMap.addMarker(new MarkerOptions()
                             .position(destinationCoord)
@@ -139,25 +153,45 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
                     destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
                     originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
                     getRoute(originPosition, destinationPosition);
-                    button = findViewById(R.id.sendDriver);
+                    button = (Button) findViewById(R.id.sendDriver);
                     button.setOnClickListener(new View.OnClickListener() {
+
+                        @SuppressLint("MissingPermission")
                         public void onClick(View v) {
                             Point origin = originPosition;
                             Point destination = destinationPosition;
-                            Geofence geofence = new Geofence.Builder()
+                            geofence = new Geofence.Builder()
                                     .setRequestId("Destination")
                                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
-                                    .setCircularRegion(lat, lng, 10f)
+                                    .setCircularRegion(lat, lng, 1000f)
                                     .setExpirationDuration(Geofence.NEVER_EXPIRE)
                                     .build();
                             locationRequest = LocationRequest.create()
                                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                                     .setInterval(1000)
                                     .setFastestInterval(1000);
-                            getGeofencePendingIntent();
-                            startService(new Intent(getApplicationContext(), UserService.class));
-
-
+                            /*Intent intent = new Intent(getApplicationContext(), UserService.class);
+                            PendingIntent pendingIntent = PendingIntent.getService(getApplicationContext(), 1, intent, 0);*/
+                            if (PermissionsManager.areLocationPermissionsGranted(MapLookup.this)) {
+                                mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                Log.e("test", "" + isMyServiceRunning(MyService.class));
+                                            }
+                                        });
+                            } else {
+                                permissionsManager = new PermissionsManager(MapLookup.this);
+                                permissionsManager.requestLocationPermissions(MapLookup.this);
+                                mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
+                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                Log.e("test", "" + isMyServiceRunning(MyService.class));
+                                            }
+                                        });
+                            }
+                            startUserService();
 
                             // Create a NavigationLauncherOptions object to package everything together
                             NavigationLauncherOptions options = NavigationLauncherOptions.builder()
@@ -166,7 +200,8 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
                                     .shouldSimulateRoute(true)
                                     .build();
 
-                            NavigationLauncher.startNavigation(MapLookup.this, options);
+                            //NavigationLauncher.startNavigation(MapLookup.this, options);
+
                         }
                     });
 
@@ -177,6 +212,16 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         }
     }
 
+    private void startUserService() {
+        startService(new Intent(this, UserService.class));
+    }
+
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofence(geofence);
+        return builder.build();
+    }
     private void getRoute(Point origin, Point destination) {
         NavigationRoute.builder()
                 .accessToken(Mapbox.getAccessToken())
@@ -234,6 +279,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         locationEngine.setPriority(LocationEnginePriority.HIGH_ACCURACY);
         locationEngine.activate();
 
+
         Location lastLocation = locationEngine.getLastLocation();
         if (lastLocation != null) {
             originLocation = lastLocation;
@@ -286,6 +332,9 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     @SuppressWarnings( {"MissingPermission"})
     protected void onStart() {
         super.onStart();
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
         if (locationEngine != null) {
             locationEngine.requestLocationUpdates();
         }
@@ -298,6 +347,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     @Override
     protected void onStop() {
         super.onStop();
+        mGoogleApiClient.disconnect();
         if (locationEngine != null) {
             locationEngine.removeLocationUpdates();
         }
@@ -381,5 +431,28 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     }
 
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 

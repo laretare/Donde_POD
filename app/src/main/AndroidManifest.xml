@@ -45,8 +45,10 @@
 
 
         </activity>
-        <service android:name=".MyService" android:process=":my_service" />
-        <service android:name=".UserService" android:process=":user_service" />
+        <activity android:name=".endScreen" />
+
+        <service android:name="com.example.danie.techedgebarcode.MyService" android:process=":my_service" />
+        <service android:name="com.example.danie.techedgebarcode.UserService" android:process=":user_service" />
     </application>
 
 </manifest>

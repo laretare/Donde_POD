@@ -29,131 +29,119 @@ public class UserService extends Service {
     private LocationManager locationManager = null;
     private static final int locationUpdateTime = 500;
     private static final float location_Distance = 10f;
-    private class LocationListener implements android.location.LocationListener
-    {
-        Location mLastLocation;
 
-        public LocationListener(String provider)
-        {
-            Log.e(TAG, "LocationListener " + provider);
-            mLastLocation = new Location(provider);
-        }
+     private class LocationListener implements android.location.LocationListener
+     {
+         Location mLastLocation;
 
-        @Override
-        public void onLocationChanged(Location location)
-        {
-            Intent notifcationIntent = new Intent(getApplicationContext(), MyService.class);
-            createNotificationChannel();
-            notifcationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, notifcationIntent, 0);
-            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "DondePod")
-                    .setContentTitle("User location")
-                    .setContentText(location.toString())
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
-            notificationManager.notify(1, mBuilder.build());
-            Log.e(TAG, "onLocationChanged: " + location);
-            mLastLocation.set(location);
-        }
+         public LocationListener(String provider)
+         {
+             Log.e(TAG, "LocationListener " + provider);
+             mLastLocation = new Location(provider);
+         }
 
-        @Override
-        public void onProviderDisabled(String provider)
-        {
-            Log.e(TAG, "onProviderDisabled: " + provider);
-        }
+         @Override
+         public void onLocationChanged(Location location)
+         {
+             Intent notifcationIntent = new Intent(getApplicationContext(), UserService.class);
+             notifcationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+             PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, notifcationIntent, 0);
+             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(), "DondePod")
+                     .setContentTitle("User location")
+                     .setContentText(location.toString())
+                     .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
+                     .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+             notificationManager.notify(1, mBuilder.build());
+             Log.e(TAG, "onLocationChanged: " + location);
+             mLastLocation.set(location);
+         }
 
-        @Override
-        public void onProviderEnabled(String provider)
-        {
-            Log.e(TAG, "onProviderEnabled: " + provider);
-        }
+         @Override
+         public void onProviderDisabled(String provider)
+         {
+             Log.e(TAG, "onProviderDisabled: " + provider);
+         }
 
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras)
-        {
-            Log.e(TAG, "onStatusChanged: " + provider);
-        }
-    }
+         @Override
+         public void onProviderEnabled(String provider)
+         {
+             Log.e(TAG, "onProviderEnabled: " + provider);
+         }
 
-    LocationListener[] mLocationListeners = new LocationListener[] {
-            new LocationListener(LocationManager.GPS_PROVIDER),
-            new LocationListener(LocationManager.NETWORK_PROVIDER)
-    };
+         @Override
+         public void onStatusChanged(String provider, int status, Bundle extras)
+         {
+             Log.e(TAG, "onStatusChanged: " + provider);
+         }
+     }
 
-    @Override
-    public IBinder onBind(Intent arg0)
-    {
-        return null;
-    }
+     LocationListener[] mLocationListeners = new LocationListener[] {
+             new LocationListener(LocationManager.GPS_PROVIDER),
+             new LocationListener(LocationManager.NETWORK_PROVIDER)
+     };
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
-    {
-        Log.e(TAG, "onStartCommand");
-        super.onStartCommand(intent, flags, startId);
-        return START_STICKY;
-    }
+     @Override
+     public IBinder onBind(Intent arg0)
+     {
+         return null;
+     }
 
-    @Override
-    public void onCreate()
-    {
-        Log.e(TAG, "onCreate");
-        initializeLocationManager();
-        try {
-            locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, locationUpdateTime , location_Distance ,
-                    mLocationListeners[1]);
-        } catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
-        }
-        try {
-            locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, locationUpdateTime , location_Distance ,
-                    mLocationListeners[0]);
-        } catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "gps provider does not exist " + ex.getMessage());
-        }
-    }
+     @Override
+     public int onStartCommand(Intent intent, int flags, int startId)
+     {
+         Log.e(TAG, "onStartCommand");
+         super.onStartCommand(intent, flags, startId);
+         return START_STICKY;
+     }
 
-    @Override
-    public void onDestroy()
-    {
-        Log.e(TAG, "onDestroy");
-        super.onDestroy();
-        if (locationManager != null) {
-            for (int i = 0; i < mLocationListeners.length; i++) {
-                try {
-                    locationManager.removeUpdates(mLocationListeners[i]);
-                } catch (Exception ex) {
-                    Log.i(TAG, "fail to remove location listners, ignore", ex);
-                }
-            }
-        }
-    }
+     @Override
+     public void onCreate()
+     {
+         Log.e(TAG, "onCreate");
+         initializeLocationManager();
+         try {
+             locationManager.requestLocationUpdates(
+                     LocationManager.NETWORK_PROVIDER, locationUpdateTime , location_Distance ,
+                     mLocationListeners[1]);
+         } catch (java.lang.SecurityException ex) {
+             Log.i(TAG, "fail to request location update, ignore", ex);
+         } catch (IllegalArgumentException ex) {
+             Log.d(TAG, "network provider does not exist, " + ex.getMessage());
+         }
+         try {
+             locationManager.requestLocationUpdates(
+                     LocationManager.GPS_PROVIDER, locationUpdateTime , location_Distance ,
+                     mLocationListeners[0]);
+         } catch (java.lang.SecurityException ex) {
+             Log.i(TAG, "fail to request location update, ignore", ex);
+         } catch (IllegalArgumentException ex) {
+             Log.d(TAG, "gps provider does not exist " + ex.getMessage());
+         }
+     }
 
-    private void initializeLocationManager() {
-        Log.e(TAG, "initializeLocationManager");
-        if (locationManager == null) {
-            locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        }
-    }
-    private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = getString(R.string.channel_name);
-            String description = "Notification for app test";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel("DondePod", name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
+     @Override
+     public void onDestroy()
+     {
+         Log.e(TAG, "onDestroy");
+         super.onDestroy();
+         if (locationManager != null) {
+             for (int i = 0; i < mLocationListeners.length; i++) {
+                 try {
+                     locationManager.removeUpdates(mLocationListeners[i]);
+                 } catch (Exception ex) {
+                     Log.i(TAG, "fail to remove location listners, ignore", ex);
+                 }
+             }
+         }
+     }
+
+     private void initializeLocationManager() {
+         Log.e(TAG, "initializeLocationManager");
+         if (locationManager == null) {
+             locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+         }
+     }
+
+
 }
