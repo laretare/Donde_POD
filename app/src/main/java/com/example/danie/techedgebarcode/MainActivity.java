@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity  {
                                     HttpURLConnection connection = (HttpURLConnection) test.openConnection();
 
 
-                                    String userCredentials = "kgriffin@clearviewaudit.com:Javag33K";
+                                    String userCredentials = getString(R.string.login);
                                     byte[] encodeValue = Base64.encode(userCredentials.getBytes(), Base64.DEFAULT);
 
                                     String encodedAuth= "Basic "+ userCredentials;
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity  {
                                     connection.setDoOutput(true);
                                     OutputStream os =  connection.getOutputStream();
                                     OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
-                                    osw.write("{"+"\"api_key\""+":"+"\"TuM6rJL9i2HYrSenELXKykLSM8Dz5SFj\","+
+                                    osw.write("{"+"\"api_key\""+":"+getString(R.string.api_key)+
                                             "\"bol_number\""+":"+"\""+ barcode.displayValue + "\"" + "}");
                                     osw.flush();
                                     osw.close();

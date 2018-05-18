@@ -17,4 +17,6 @@
     <string name="external_dir">GetSignature</string>
     <string name="access_token" translatable="false">pk.eyJ1IjoiaGFuZ2VkZHJhZ29uOTYiLCJhIjoiY2pkZXc4d3I2MDBuczMzbWY3ZWYybWpoNCJ9.MBSte_A4TF62CCsKZcfFJQ</string>
     <string name="tab" />
+    <string name="login">kgriffin@clearviewaudit.com:Javag33K</string>
+    <string name="api_key">\"TuM6rJL9i2HYrSenELXKykLSM8Dz5SFj\",</string>
 </resources>
