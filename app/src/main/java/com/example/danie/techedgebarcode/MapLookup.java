@@ -105,6 +105,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         setContentView(R.layout.scanned);
         map = (MapView) findViewById(R.id.mapView);
         Destination destination = (Destination) getIntent().getSerializableExtra("Destination");
+        Destination temp = new Destination("bob bay", " steep and brew west", "6656 Odana Rd", "Madison", "WI", " 608-833-6656", "test@temp.com", "53719", "US");
         Origin origin;
         origin = (Origin) getIntent().getSerializableExtra("Origin");
         TextView originName;
@@ -117,9 +118,9 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         originName.setText(origin.getCompany());
         originStreet.setText(origin.getAddress());
         originNumber.setText(String.format("%s\t%s", origin.getPhone(), origin.getName()));
-        destinationName.setText(destination.getCompany());
-        destinationStreet.setText(destination.getAddress());
-        destinationNumber.setText(String.format("%s %s", destination.getPhone(), destination.getName()));
+        destinationName.setText(temp.getCompany());
+        destinationStreet.setText(temp.getAddress());
+        destinationNumber.setText(String.format("%s %s", temp.getPhone(), temp.getName()));
         //Button sendDriver = (Button) findViewById(R.id.sendDriver);
         mGeofencingClient = LocationServices.getGeofencingClient(this);
        /* sendDriver.setOnClickListener(new View.OnClickListener(){
@@ -145,7 +146,8 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
                     enableLocationPlugin();
                     getLatLongFromPlace(origin.getAddress());
                     originCoord = new LatLng(lat, lng);
-                    getLatLongFromPlace(destination.getAddress());
+                    Location Origin = new Location("");
+                    getLatLongFromPlace(temp.getAddress());
                     destinationCoord = new LatLng(lat, lng);
                     destinationMarker = mapboxMap.addMarker(new MarkerOptions()
                             .position(destinationCoord)
