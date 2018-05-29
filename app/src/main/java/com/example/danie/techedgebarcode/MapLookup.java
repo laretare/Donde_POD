@@ -475,7 +475,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             return new Geofence.Builder()
                     .setRequestId("Destination")
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
-                    .setCircularRegion(lat, lng, 50)
+                    .setCircularRegion(lat, lng, 20)
                     .setExpirationDuration(Geofence.NEVER_EXPIRE)
                     .build();
         }
