@@ -3,7 +3,9 @@ package com.example.danie.techedgebarcode;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -47,11 +49,17 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "BarcodeMain";
 
     private Button scanBtn;
-    private TextView formatTxt, contentTxt, userName;
+    private TextView formatTxt, contentTxt, userName, textComment;
     private Origin origin;
     private Destination destination;
     private PlaceHolder placeHolder;
-
+    final Handler responseHandler = new Handler(Looper.getMainLooper()){
+        @Override
+        public void handleMessage(Message msg) {
+            //txtView.setText((String) msg.obj);
+            updateScreen();
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
         userName = (TextView) findViewById(R.id.userName);
         userName.setText("Welcome \n " + getIntent().getStringExtra("name"));
         scanBtn = (Button) findViewById(R.id.scanBtn);
+        textComment = (TextView) findViewById(R.id.textComment);
         placeHolder = new PlaceHolder();
         scanBtn.setOnClickListener(
             new View.OnClickListener() {
@@ -117,6 +126,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void updateScreen() {
+        userName.setText("Working");
+        textComment.setText("Getting info from Server");
+        scanBtn.setVisibility(View.INVISIBLE);
+    }
+
+
     class InternalRunnable implements Runnable {
 
         Barcode barcode;
@@ -132,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.v(TAG, "Step 1");
                 HttpURLConnection connection = makeRequest();
                 Log.v(TAG, "Step 2");
+                changeScreen();
                 processResponse(connection);
                 Log.v(TAG, "Step 3");
             } catch (Exception e) {
@@ -163,6 +180,10 @@ public class MainActivity extends AppCompatActivity {
                 Log.v(TAG, "" + connection.getResponseMessage() );
                 Log.v(TAG, ""+ connection.getContent().toString());
             }
+        }
+
+        private void changeScreen() {
+            responseHandler.sendMessage(new Message());
         }
 
         private void readData(HttpURLConnection connection, Gson gson) throws IOException {

@@ -123,7 +123,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     @NonNull
     private Destination getDestination() {
         Destination destination = (Destination) getIntent().getSerializableExtra("Destination");
-        destination = new Destination("Dunno", "Steep and Brew West", "6656 Odana Rd", "Madison", "WI", " 608-833-6656", "test@temp.com", "53719", "US");
+//        destination = new Destination("Dunno", "Steep and Brew West", "6656 Odana Rd", "Madison", "WI", " 608-833-6656", "test@temp.com", "53719", "US");
         return destination;
     }
 
