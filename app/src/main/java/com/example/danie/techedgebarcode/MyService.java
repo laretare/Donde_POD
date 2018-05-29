@@ -1,46 +1,21 @@
 package com.example.danie.techedgebarcode;
 
-import android.Manifest;
 import android.app.IntentService;
 
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 import com.example.danie.techedgebarcode.signature.CaptureSignature;
-import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
-import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingEvent;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 public class MyService extends IntentService {
     private static String TAG = "LOCATION SERVICE";
@@ -56,8 +31,8 @@ public class MyService extends IntentService {
      */
     public MyService() {
 
-        super("DondePod Location");
-        Log.e(TAG, "Constructor");
+        super("DondePod Location ");
+        Log.e(TAG, "GeoFence Service Constructor");
         android.os.Debug.waitForDebugger();
 
     }
@@ -65,7 +40,7 @@ public class MyService extends IntentService {
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         Log.e(TAG, "onHandle");
-        stopService(new Intent(this, UserService.class));
+        stopService(new Intent(this, LocationService.class));
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
         Intent notifcationIntent = new Intent(this, MapLookup.class);
         notifcationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -100,7 +75,7 @@ public class MyService extends IntentService {
 
         } else {
             Log.e(TAG, "error in geofence");
-            startService(new Intent(this, UserService.class));
+            startService(new Intent(this, LocationService.class));
         }
     }
 

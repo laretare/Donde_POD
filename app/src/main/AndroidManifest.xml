@@ -50,7 +50,7 @@
         <activity android:name=".endScreen" />
 
         <service android:name="com.example.danie.techedgebarcode.MyService" android:process=":my_service" />
-        <service android:name="com.example.danie.techedgebarcode.UserService" android:process=":user_service" />
+        <service android:name="com.example.danie.techedgebarcode.LocationService" android:process=":user_service" />
     </application>
 
 </manifest>

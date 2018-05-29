@@ -1,12 +1,22 @@
 package com.example.danie.techedgebarcode.models;
 
+import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
+import android.util.Log;
+
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by danie on 4/15/2018.
  */
 
 public class Destination implements Serializable {
+
+    private static final String TAG = "Destination";
+
     private String name;
     private String company;
     private String street1;
@@ -107,5 +117,18 @@ public class Destination implements Serializable {
 
     public String getAddress() {
         return this.street1 + "," + this.city + "," + this.zip;
+    }
+
+    public Address getAndroidAddressObject(Context context) {
+        Address address = null;
+        try {
+            Geocoder geocoder = new Geocoder(context);
+            List<Address> addressList = geocoder.getFromLocationName(getAddress(), 1);
+            address = addressList.get(0);
+        } catch (IOException e) {
+            Log.v(TAG, e.getMessage());
+        }
+
+        return address;
     }
 }
