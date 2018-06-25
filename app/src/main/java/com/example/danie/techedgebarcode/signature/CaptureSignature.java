@@ -43,6 +43,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.danie.techedgebarcode.LoginActivity;
+import com.example.danie.techedgebarcode.MainActivity;
 import com.example.danie.techedgebarcode.R;
 
 public class CaptureSignature extends Activity {
@@ -109,10 +111,14 @@ public class CaptureSignature extends Activity {
                     mSignature.save(mView);
                     Bundle b = new Bundle();
                     b.putString("status", "done");
-                    Intent intent = new Intent();
+                    Intent intent = new Intent(CaptureSignature.this, MainActivity.class);
                     intent.putExtras(b);
+                    intent.putExtra("name", yourName.getText().toString());
                     setResult(RESULT_OK,intent);
+                    Toast.makeText(CaptureSignature.this,"finished", Toast.LENGTH_LONG).show();
+                    startActivity(intent);
                     finish();
+
                 }
             }
         });

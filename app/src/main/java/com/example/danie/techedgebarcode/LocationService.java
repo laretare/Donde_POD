@@ -1,30 +1,50 @@
 package com.example.danie.techedgebarcode;
 
-import android.Manifest;
-import android.app.IntentService;
+
+import android.app.DialogFragment;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+
 import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
+
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
+import android.support.annotation.NonNull;
+
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
+
+import android.support.v7.app.AlertDialog;
+import android.util.Base64;
 import android.util.Log;
 
+import com.example.danie.techedgebarcode.driver.Driver;
 import com.example.danie.techedgebarcode.models.Destination;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
+import com.example.danie.techedgebarcode.models.Origin;
+
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
+import java.util.Locale;
+
+
 
 public class LocationService extends Service {
     private static String TAG = "LOCATION SERVICE";
@@ -33,10 +53,11 @@ public class LocationService extends Service {
     private LocationManager locationManager = null;
     private static final int locationUpdateTime = 500;
     private static final float location_Distance = 10f;
+    private  String bol_Number = null;
 //    private Context context = this.getApplicationContext();
     LocationListener[] mLocationListeners;
-    private Address destinationAddress;
     Destination destination;
+    Origin origin;
     Location destinationLocation;
 
     public LocationService() {
@@ -57,11 +78,13 @@ public class LocationService extends Service {
          super.onStartCommand(intent, flags, startId);
          destination = (Destination) intent.getSerializableExtra("destination");
          Log.v(TAG, "read destination:" + destination.getAddress() );
-         destinationAddress = destination.getAndroidAddressObject(this);
+         Address destinationAddress = destination.getAndroidAddressObject(this);
          Log.v(TAG, "latLong: " + destinationAddress.getLatitude() + "," + destinationAddress.getLongitude() );
          destinationLocation = new Location("");
          destinationLocation.setLongitude(destinationAddress.getLongitude());
          destinationLocation.setLatitude(destinationAddress.getLatitude());
+         bol_Number = intent.getStringExtra("bol_number");
+         origin = (Origin) intent.getSerializableExtra("origin");
 
          return START_STICKY;
      }
@@ -104,9 +127,9 @@ public class LocationService extends Service {
          Log.e(TAG, "onDestroy");
          super.onDestroy();
          if (locationManager != null) {
-             for (int i = 0; i < mLocationListeners.length; i++) {
+             for (LocationListener mLocationListener : mLocationListeners) {
                  try {
-                     locationManager.removeUpdates(mLocationListeners[i]);
+                     locationManager.removeUpdates(mLocationListener);
                  } catch (Exception ex) {
                      Log.i(TAG, "fail to remove location listners, ignore", ex);
                  }
@@ -126,8 +149,10 @@ public class LocationService extends Service {
         Location mLastLocation;
         NotificationManager notificationManager;
         Context context;
+        String city;
+        String state;
 
-        public LocationListener(String provider, Context context)
+        LocationListener(String provider, Context context)
         {
             Log.e(TAG, "LocationListener " + provider);
             this.context = context;
@@ -147,26 +172,161 @@ public class LocationService extends Service {
         @Override
         public void onLocationChanged(Location location)
         {
-            Log.v(TAG, "Trying to set notification");
+            Geocoder geocoder;
+            List<Address> addressList;
             NotificationCompat.Builder mBuilder;
+            geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+            try {
+                addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                city = addressList.get(0).getLocality();
+                state = addressList.get(0).getAdminArea();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Log.v(TAG, "Trying to set notification");
+            Intent notificationIntent = new Intent(getApplicationContext(), MapLookup.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            notificationIntent.putExtra("Origin", origin);
+            notificationIntent.putExtra("Destination", destination);
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplicationContext());
+            stackBuilder.addNextIntentWithParentStack(notificationIntent);
+            PendingIntent pendingIntent = stackBuilder.getPendingIntent( 0, PendingIntent.FLAG_UPDATE_CURRENT);
+
             if (location.distanceTo(destinationLocation) > 50) {
-                mBuilder = new NotificationCompat.Builder(context, "DondePod")
-                        .setContentTitle("User location")
-                        .setContentText(location.toString())
-                        .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark);
+                if ( city == null ){
+                    mBuilder = new NotificationCompat.Builder(getApplicationContext(), "DondePod")
+                            .setContentTitle("Shipment current location")
+                            .setContentText(location.getLatitude() + " " + location.getLongitude())
+                            .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                            .setContentIntent(pendingIntent)
+                            .setAutoCancel(true);
+                } else {
+                    mBuilder = new NotificationCompat.Builder(getApplicationContext(), "DondePod")
+                            .setContentTitle("Shipment current location")
+                            .setContentText(city + " " + state)
+                            .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                            .setContentIntent(pendingIntent)
+                            .setAutoCancel(true);
+                }
                 notificationManager.notify(101, mBuilder.build());
                 Log.e(TAG, "onLocationChanged: " + location);
             } else {
-                mBuilder = new NotificationCompat.Builder(context, "DondePod")
-                        .setContentTitle("arrived")
-                        .setContentText("You have arrived at: " + destination.getAddress())
-                        .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark);
-                notificationManager.notify(101, mBuilder.build());
+                Intent intent = new Intent(getApplicationContext(), GeofencePopupActivity.class);
+                startActivity(intent);
                 Log.v(TAG, "Got to destination");
                 stopSelf();
             }
             Log.v(TAG, "Notification Set");
             mLastLocation.set(location);
+            LocationService.LocationListener.InternalRunnable ir = new LocationService.LocationListener.InternalRunnable();
+            AsyncTask.execute(ir);
+        }
+        class InternalRunnable implements Runnable {
+
+            @Override
+            public void run() {
+                try {
+                    Log.v(TAG, "Step 1");
+                    HttpURLConnection connection = makeRequest();
+                    Log.v(TAG, "Step 2");
+                    processResponse(connection);
+                    Log.v(TAG, "Step 3");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @NonNull
+            private HttpURLConnection makeRequest() throws IOException {
+                URL url;
+                url = new URL("http://developmenttest.clearviewaudit.com/api/v1/dondepod/trackingevent");
+                HttpURLConnection connection = buildConnection(url);
+                outputToConnection(connection);
+                connection.setInstanceFollowRedirects(true);
+                HttpURLConnection.setFollowRedirects(true);
+                return connection;
+            }
+            private void readData(HttpURLConnection connection, Gson gson) throws IOException {
+                InputStream responseBody = connection.getInputStream();
+
+                InputStreamReader responseBodyReader =
+                        new InputStreamReader(responseBody, "UTF-8");
+                JsonReader jsonReader = new JsonReader(responseBodyReader);
+                jsonReader.beginObject();
+                while (jsonReader.hasNext()) {
+                    String name = jsonReader.nextName();
+
+                }
+                jsonReader.endObject();
+                jsonReader.close();
+            }
+
+            private void processResponse(HttpURLConnection connection) throws IOException {
+                Gson gson = new Gson();
+                if (connection.getResponseCode() == 200) {
+//                createPopup("Got Response");
+                    readData(connection, gson);
+                    connection.disconnect();
+//                createPopup("Loading Map Screen");
+
+                } else {
+                    Log.d(TAG, "" + connection.getResponseCode());
+                    Log.d(TAG, "" + connection.getResponseMessage());
+                    Log.d(TAG, "" + connection.getContent().toString());
+                }
+            }
+            @NonNull
+            private HttpURLConnection buildConnection(URL test) throws IOException {
+                String userCredentials = getString(R.string.login);
+                byte[] encodeValue = Base64.encode(userCredentials.getBytes(), Base64.DEFAULT);
+                String encodedAuth = "Basic " + userCredentials;
+
+                HttpURLConnection connection = (HttpURLConnection) test.openConnection();
+                connection.setRequestMethod("POST");
+                //connection.setRequestProperty("Authorization", encodedAuth);
+                //Log.v(TAG, "Encoded:" + encodedAuth);
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setDoOutput(true);
+                return connection;
+            }
+        }
+        private void outputToConnection(HttpURLConnection connection) throws IOException {
+//             String trackingJson = "{" + "\"tracking_info\"" + ":" + "{" +
+//                     "\"bol_number\"" + ":" + "\"" + bol_Number.toString() + "\"" +
+//                     "\"event\"" + ":" + "\"" + "tracking" + "\""+  ","+
+//                     "\"location \"" + ":" + "{" +  "\"latitude \"" + ":" + "\""
+//                     + mLastLocation.getLatitude() +  "\"longitude \"" + ":" + "\""
+//                     + mLastLocation.getLongitude() + "," + "driver_info"+  "}";
+            Driver driver = new Driver("bob", "jones", "555-555-5555");
+            String trackingJson =
+                    "{" +
+                            "\"api_key\" :" + getString(R.string.api_key) +
+                            "\"tracking_info\":{" +
+                            "\"shipment_number\": \"" + bol_Number + "\"," +
+                            "\"event\":   \"tracking\","  +
+                            "\"driver_info\": {" +
+                            "\"first\": \"" + driver.getFirstName() + "\"," +
+                            "\"last\": \"" + driver.getLastName() + "\"," +
+                            "\"phone\": \"" + driver.getPhonenumber() + "\"" +
+                            "}," +
+                            "\"location\":   {" +
+                            "\"latitude\": " + mLastLocation.getLatitude() + "," +
+                            "\"longitude\":" + mLastLocation.getLongitude() +
+                            "}" +
+                            "}" +
+                            "}";
+            Log.e(TAG, trackingJson);
+
+            OutputStream os = connection.getOutputStream();
+
+            OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+
+            osw.write(trackingJson);
+            osw.flush();
+            osw.close();
+            os.close();  //don't forget to close the OutputStream
         }
 
         @Override

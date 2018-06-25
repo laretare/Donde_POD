@@ -36,7 +36,6 @@ public class DriverActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 driver = new Driver();
-                driver.setName(firstName.getText().toString() + " " + lastName.getText().toString());
                 driver.setPhonenumber(phoneNumber.getText().toString());
                 sendText();
                 Intent intent = new Intent(DriverActivity.this, DriverSentActivity.class);

@@ -49,10 +49,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "BarcodeMain";
 
     private Button scanBtn;
-    private TextView formatTxt, contentTxt, userName, textComment;
+    private TextView userName, textComment;
     private Origin origin;
     private Destination destination;
-    private PlaceHolder placeHolder;
     final Handler responseHandler = new Handler(Looper.getMainLooper()){
         @Override
         public void handleMessage(Message msg) {
@@ -65,19 +64,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
         userName = (TextView) findViewById(R.id.userName);
-        userName.setText("Welcome \n " + getIntent().getStringExtra("name"));
+        userName.setText(String.format("Welcome \n %s", getIntent().getStringExtra("name")));
         scanBtn = (Button) findViewById(R.id.scanBtn);
         textComment = (TextView) findViewById(R.id.textComment);
-        placeHolder = new PlaceHolder();
         scanBtn.setOnClickListener(
             new View.OnClickListener() {
-                public void onClick(View view) {
-                    Intent intent = new Intent(MainActivity.this, Scanner.class);
-                    Log.v(TAG, "Sending intent");
-                    startActivityForResult(intent, RC_BARCODE_CAPTURE);
+               public void onClick(View view) {
+//                    Intent intent = new Intent(MainActivity.this, Scanner.class);
+//                    startActivityForResult(intent, RC_BARCODE_CAPTURE);
+                   Intent intent = new Intent(getApplicationContext(), GeofencePopupActivity.class);
+                   startActivity(intent);
                 }
             }
         );
+
     }
 
     @Override
@@ -118,13 +118,15 @@ public class MainActivity extends AppCompatActivity {
         toast.show();
     }
 
-    private void afterResponse() {
+    private void afterResponse(String bol) {
         Log.v(TAG, "Step 4");
         Intent intent = new Intent(this, MapLookup.class);
         intent.putExtra("Origin", origin);
         intent.putExtra("Destination", destination);
+        intent.putExtra("bol_number", bol);
         startActivity(intent);
     }
+
 
     private void updateScreen() {
         userName.setText("Working");
@@ -137,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
 
         Barcode barcode;
 
-        public InternalRunnable(Barcode barcode) {
+        InternalRunnable(Barcode barcode) {
             this.barcode = barcode;
         }
 
@@ -160,8 +162,8 @@ public class MainActivity extends AppCompatActivity {
         private HttpURLConnection makeRequest() throws IOException {
             URL url;
             url = new URL("http://developmenttest.clearviewaudit.com/api/v1/dondepod/bol/data");
-            HttpURLConnection connection = buildConnection(url);
-            outputToConnection(connection);
+            HttpURLConnection connection = buildConnection(url, barcode.displayValue);
+            //outputToConnection(connection);
             connection.setInstanceFollowRedirects(true);
             HttpURLConnection.setFollowRedirects(true);
             return connection;
@@ -174,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
                 readData(connection, gson);
                 connection.disconnect();
 //                createPopup("Loading Map Screen");
-                afterResponse();
+                afterResponse(barcode.displayValue);
             } else {
                 Log.v(TAG, ""+ connection.getResponseCode());
                 Log.v(TAG, "" + connection.getResponseMessage() );
@@ -208,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
             jsonReader.close();
         }
 
-        private void outputToConnection(HttpURLConnection connection) throws IOException {
+       /* private void outputToConnection(HttpURLConnection connection) throws IOException {
             OutputStream os = connection.getOutputStream();
             OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
             osw.write("{" + "\"api_key\"" + ":" + getString(R.string.api_key) +
@@ -216,20 +218,18 @@ public class MainActivity extends AppCompatActivity {
             osw.flush();
             osw.close();
             os.close();  //don't forget to close the OutputStream
-        }
+        }*/
 
         @NonNull
-        private HttpURLConnection buildConnection(URL test) throws IOException {
-            String userCredentials = getString(R.string.login);
+        private HttpURLConnection buildConnection(URL test, String bol_number) throws IOException {
+            /*String userCredentials = getString(R.string.login);
             byte[] encodeValue = Base64.encode(userCredentials.getBytes(), Base64.DEFAULT);
-            String encodedAuth = "Basic " + userCredentials;
+            String encodedAuth = "Basic " + userCredentials;*/
 
             HttpURLConnection connection = (HttpURLConnection) test.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Authorization", encodedAuth);
-            Log.v(TAG, "Encoded:" + encodedAuth);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("bol_number", bol_number);
             connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
             return connection;
         }
     }

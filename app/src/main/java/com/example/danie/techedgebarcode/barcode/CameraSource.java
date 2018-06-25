@@ -1,9 +1,5 @@
 package com.example.danie.techedgebarcode.barcode;
 
-/*
-  Created by danie on 1/29/2018.
- */
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;

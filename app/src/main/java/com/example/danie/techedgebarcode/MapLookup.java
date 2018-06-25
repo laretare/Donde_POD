@@ -65,6 +65,7 @@ import retrofit2.Response;
  */
 
 public class MapLookup extends AppCompatActivity implements LocationEngineListener, PermissionsListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    private static final String TAG = "DirectionsActivity";
     private MapView map;
     private MapboxMap mMap;
     private PermissionsManager permissionsManager;
@@ -79,7 +80,6 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     private Point originPosition;
     private Point destinationPosition;
     private DirectionsRoute currentRoute;
-    private static final String TAG = "DirectionsActivity";
     private NavigationMapRoute navigationMapRoute;
 //    private PendingIntent mGeofencePendingIntent;
     private Button button;
@@ -87,8 +87,8 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     private GeofencingClient mGeofencingClient;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest locationRequest;
-    Destination destination;
-
+    private Destination destination;
+    private Origin origin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,7 +97,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         setContentView(R.layout.scanned);
         map = (MapView) findViewById(R.id.mapView);
         destination = getDestination();
-        Origin origin = getOrigin();
+        origin = getOrigin();
         setupGui(destination, origin);
         mGeofencingClient = LocationServices.getGeofencingClient(this);
 
@@ -108,23 +108,23 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             map.getMapAsync(new CustomOnMapReadyCallback(origin, destination) );
         }
     }
+    @Override
+    protected void onNewIntent (Intent intent){
+     setIntent(intent);
 
+    }
     private void handleNullDestination() {
         Toast.makeText(getApplicationContext(), "Invaild Barcode", Toast.LENGTH_LONG).show();
         finish();
     }
 
     private Location convertDestination() {
-        Location location = new Location("destination");
-
-        return location;
+        return new Location("destination");
     }
 
     @NonNull
     private Destination getDestination() {
-        Destination destination = (Destination) getIntent().getSerializableExtra("Destination");
-//        destination = new Destination("Dunno", "Steep and Brew West", "6656 Odana Rd", "Madison", "WI", " 608-833-6656", "test@temp.com", "53719", "US");
-        return destination;
+        return (Destination) getIntent().getSerializableExtra("Destination");
     }
 
     private Origin getOrigin() {
@@ -153,6 +153,8 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         Log.v(TAG, "Starting LocationService");
         Intent userServiceIntent = new Intent(this, LocationService.class);
         userServiceIntent.putExtra("destination", destination);
+        userServiceIntent.putExtra("origin", origin);
+        userServiceIntent.putExtra("bol_number", (String) getIntent().getSerializableExtra("bol_number"));
         startService(userServiceIntent);
         Log.v(TAG, "Finishing Start of LocationService");
     }
@@ -181,7 +183,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             initializeLocationEngine();
 
             locationPlugin = new LocationLayerPlugin(map, mMap, locationEngine);
-            preventStupidLogMessages();
+            preventLogMessages();
             locationPlugin.setLocationLayerEnabled(true);
         } else {
             permissionsManager = new PermissionsManager(this);
@@ -189,7 +191,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         }
     }
 
-    private void preventStupidLogMessages() {
+    private void preventLogMessages() {
         Location location = new Location("");
         location.setLatitude(53.874384);
         location.setLongitude(10.684057);
@@ -433,6 +435,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             destinationMarker = mapboxMap.addMarker(new MarkerOptions()
                     .position(destinationCoord)
             );
+
             destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
             originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
             getRoute(originPosition, destinationPosition);

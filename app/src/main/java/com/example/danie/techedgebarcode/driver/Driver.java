@@ -7,15 +7,24 @@ import java.io.Serializable;
  */
 
 public class Driver implements Serializable {
-    private String name;
+    private String firstName;
+    private String lastName;
     private  String phone_number;
+    public Driver(){
 
-    public String getName() {
-        return name;
+    }
+    public Driver(String firstName, String lastName, String phone_number) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phone_number = phone_number;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String name) {
+        this.firstName = name;
     }
 
     public String getPhonenumber() {
@@ -24,5 +33,13 @@ public class Driver implements Serializable {
 
     public void setPhonenumber(String phonenumber) {
         this.phone_number = phonenumber;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 }

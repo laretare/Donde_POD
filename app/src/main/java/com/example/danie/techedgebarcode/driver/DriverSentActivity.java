@@ -33,7 +33,7 @@ public class DriverSentActivity extends AppCompatActivity {
         phoneNumber = (TextView) findViewById(R.id.phoneNumber);
         driver = (Driver) getIntent().getSerializableExtra("Driver");
         phoneNumber.setText(driver.getPhonenumber());
-        name.setText(driver.getName());
+
         resend.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -46,7 +46,7 @@ public class DriverSentActivity extends AppCompatActivity {
     private void sendText() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
                 == PackageManager.PERMISSION_GRANTED) {
-            SmsManager.getDefault().sendTextMessage(phoneNumber.getText().toString(), null, driver.getName() + " You have been requested to deliver this package", null, null);
+            SmsManager.getDefault().sendTextMessage(phoneNumber.getText().toString(), null,   " You have been requested to deliver this package", null, null);
 
         } else {
             ActivityCompat.requestPermissions(this,
@@ -63,7 +63,7 @@ public class DriverSentActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    SmsManager.getDefault().sendTextMessage(phoneNumber.getText().toString(), null, driver.getName() + "You have been requested to deliver this package", null, null);
+                    SmsManager.getDefault().sendTextMessage(phoneNumber.getText().toString(), null,  "You have been requested to deliver this package", null, null);
 
 
                 } else {

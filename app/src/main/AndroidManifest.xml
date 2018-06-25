@@ -30,14 +30,18 @@
 
         <activity android:name=".barcode.Scanner"
             android:label="Read Barcode"/>
+
         <activity android:name=".MapLookup"
             android:label="Map"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:launchMode="singleTop"/>
 
         <activity android:name=".signature.CaptureSignature" android:label="Signature Confirmation"
             android:screenOrientation="landscape" />
+
         <activity android:name=".driver.DriverActivity"
                         android:label="Driver"/>
+
         <activity android:name=".driver.DriverSentActivity"
             android:label="DriverSent"/>
 
@@ -51,8 +55,10 @@
         </activity>
         <activity android:name=".endScreen" />
 
-        <service android:name="com.example.danie.techedgebarcode.MyService" android:process=":my_service" />
-        <service android:name="com.example.danie.techedgebarcode.LocationService" android:process=":user_service" />
+        <activity android:name=".GeofencePopupActivity"
+                  android:theme="@android:style/Theme.Dialog"/>
+        <service android:enabled="true" android:name="com.example.danie.techedgebarcode.LocationUpdate" android:process=":location_update" />
+        <service android:enabled="true" android:name="com.example.danie.techedgebarcode.LocationService" android:process=":location_service" />
     </application>
 
 </manifest>
