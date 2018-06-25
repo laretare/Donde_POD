@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -13,7 +14,6 @@ import com.example.danie.techedgebarcode.signature.CaptureSignature;
 
 
 public class GeofenceDialog extends DialogFragment {
-
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -31,7 +31,12 @@ public class GeofenceDialog extends DialogFragment {
                 .setNeutralButton("Call Location", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        //Call Location
+                        Bundle bundle = getArguments();
+                        String phoneNumber = bundle.getString("phoneNumber");
+                        Intent callIntent = new Intent(Intent.ACTION_DIAL);
+                        callIntent.setData(Uri.parse("tel:" + phoneNumber));
+                        startActivity(callIntent);
+
                     }
                 })
                 .setNegativeButton("X", new DialogInterface.OnClickListener() {

@@ -13,8 +13,12 @@ import android.widget.Button;
  * Created by danie on 3/6/2018.
  */
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Calendar;
 
 import android.app.Activity;
@@ -107,13 +111,28 @@ public class CaptureSignature extends Activity {
                 Log.v("log_tag", "Panel Saved");
                 boolean error = captureSignature();
                 if(!error){
+                    File directory = getApplicationContext().getFilesDir();
+                    File usernameFile = new File(directory, "user_Profile.txt");
+                    StringBuilder username = new StringBuilder();
+                    try{
+                        BufferedReader br = new BufferedReader(new FileReader(usernameFile));
+                        String fileLine;
+                        while((fileLine = br.readLine()) != null){
+                            username.append(fileLine);
+                        }
+                        br.close();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     mView.setDrawingCacheEnabled(true);
                     mSignature.save(mView);
                     Bundle b = new Bundle();
                     b.putString("status", "done");
                     Intent intent = new Intent(CaptureSignature.this, MainActivity.class);
                     intent.putExtras(b);
-                    intent.putExtra("name", yourName.getText().toString());
+                    intent.putExtra("name", username.toString());
                     setResult(RESULT_OK,intent);
                     Toast.makeText(CaptureSignature.this,"finished", Toast.LENGTH_LONG).show();
                     startActivity(intent);

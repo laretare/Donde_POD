@@ -70,11 +70,9 @@ public class MainActivity extends AppCompatActivity {
         scanBtn.setOnClickListener(
             new View.OnClickListener() {
                public void onClick(View view) {
-//                    Intent intent = new Intent(MainActivity.this, Scanner.class);
-//                    startActivityForResult(intent, RC_BARCODE_CAPTURE);
-                   Intent intent = new Intent(getApplicationContext(), GeofencePopupActivity.class);
-                   startActivity(intent);
-                }
+                    Intent intent = new Intent(MainActivity.this, Scanner.class);
+                    startActivityForResult(intent, RC_BARCODE_CAPTURE);
+               }
             }
         );
 
@@ -163,7 +161,6 @@ public class MainActivity extends AppCompatActivity {
             URL url;
             url = new URL("http://developmenttest.clearviewaudit.com/api/v1/dondepod/bol/data");
             HttpURLConnection connection = buildConnection(url, barcode.displayValue);
-            //outputToConnection(connection);
             connection.setInstanceFollowRedirects(true);
             HttpURLConnection.setFollowRedirects(true);
             return connection;
@@ -202,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
                     origin = gson.fromJson(jsonReader, Origin.class);
                 } else if (name.equals("destination_stop")) {
                     destination = gson.fromJson(jsonReader, Destination.class);
+
                 } else {
                     jsonReader.skipValue();
                 }
@@ -210,15 +208,7 @@ public class MainActivity extends AppCompatActivity {
             jsonReader.close();
         }
 
-       /* private void outputToConnection(HttpURLConnection connection) throws IOException {
-            OutputStream os = connection.getOutputStream();
-            OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
-            osw.write("{" + "\"api_key\"" + ":" + getString(R.string.api_key) +
-                    "\"bol_number\"" + ":" + "\"" + barcode.displayValue + "\"" + "}");
-            osw.flush();
-            osw.close();
-            os.close();  //don't forget to close the OutputStream
-        }*/
+
 
         @NonNull
         private HttpURLConnection buildConnection(URL test, String bol_number) throws IOException {

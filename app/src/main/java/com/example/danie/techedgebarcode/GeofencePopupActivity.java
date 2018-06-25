@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.danie.techedgebarcode.barcode.Scanner;
+import com.example.danie.techedgebarcode.models.Destination;
 import com.example.danie.techedgebarcode.signature.CaptureSignature;
 
 public class GeofencePopupActivity extends FragmentActivity {
@@ -36,7 +37,11 @@ public class GeofencePopupActivity extends FragmentActivity {
 //        closeBtn.setOnClickListener( view -> {
 //           finish();
 //        });
+        Destination destination = (Destination) getIntent().getSerializableExtra("destination");
         DialogFragment dialog = new GeofenceDialog();
+        Bundle bundle = new Bundle();
+        bundle.putString("phoneNumber", destination.getPhone());
+        dialog.setArguments(bundle);
         dialog.show(getFragmentManager(), "arrived");
 
 

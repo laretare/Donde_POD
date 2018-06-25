@@ -214,6 +214,7 @@ public class LocationService extends Service {
                 Log.e(TAG, "onLocationChanged: " + location);
             } else {
                 Intent intent = new Intent(getApplicationContext(), GeofencePopupActivity.class);
+                intent.putExtra("destination", destination);
                 startActivity(intent);
                 Log.v(TAG, "Got to destination");
                 stopSelf();
