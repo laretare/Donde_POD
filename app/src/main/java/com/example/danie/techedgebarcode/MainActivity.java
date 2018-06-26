@@ -1,11 +1,13 @@
 package com.example.danie.techedgebarcode;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -47,8 +49,8 @@ import java.nio.charset.StandardCharsets;
 public class MainActivity extends AppCompatActivity {
     private static final int RC_BARCODE_CAPTURE = 9001;
     private static final String TAG = "BarcodeMain";
-
-    private Button scanBtn;
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+    private Button scanBtn, testBtn;
     private TextView userName, textComment;
     private Origin origin;
     private Destination destination;
@@ -63,9 +65,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
         userName = (TextView) findViewById(R.id.userName);
-        userName.setText(String.format("Welcome \n %s", getIntent().getStringExtra("name")));
+        userName.setText(String.format(" Welcome, \n%s", getIntent().getStringExtra("name")));
         scanBtn = (Button) findViewById(R.id.scanBtn);
-        textComment = (TextView) findViewById(R.id.textComment);
+        testBtn= (Button) findViewById(R.id.testBtn);
+        testBtn.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                }
+            }
+        });
+       // textComment = (TextView) findViewById(R.id.textComment);
         scanBtn.setOnClickListener(
                 view -> {
                      Intent intent = new Intent(MainActivity.this, Scanner.class);
@@ -86,7 +99,13 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 doErrorMessage(resultCode);
             }
-        } else {
+        }
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+
+        }
+        else {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }

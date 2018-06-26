@@ -82,7 +82,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     private DirectionsRoute currentRoute;
     private NavigationMapRoute navigationMapRoute;
 //    private PendingIntent mGeofencePendingIntent;
-    private Button button;
+    private Button button, settingBtn;
     private Geofence geofence;
     private GeofencingClient mGeofencingClient;
     private GoogleApiClient mGoogleApiClient;
@@ -441,6 +441,14 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             getRoute(originPosition, destinationPosition);
             button = (Button) findViewById(R.id.sendDriver);
             button.setOnClickListener( new ViewOnClickListener() );
+            settingBtn = (Button) findViewById(R.id.settings);
+            settingBtn.setOnClickListener( new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    Intent settings = new Intent(MapLookup.this, Settings.class);
+                }
+            });
         }
 
         private NavigationLauncherOptions setupNavLauncherOptions(Point origin, Point destination) {

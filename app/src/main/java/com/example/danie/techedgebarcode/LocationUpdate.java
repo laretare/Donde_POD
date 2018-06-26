@@ -48,8 +48,8 @@ import java.util.Locale;
 public class LocationUpdate extends Service {
     private static String TAG = "LOCATION SERVICE";
     private LocationManager locationManager = null;
-    private static final int locationUpdateTime = 5000;
-    private static final float location_Distance = 0f;
+    private static final long locationUpdateTime = 5000;
+    private static final float location_Distance = 10f;
     private  String bol_Number = null;
 
      private class LocationListener implements android.location.LocationListener
