@@ -19,24 +19,6 @@ public class GeofencePopupActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       // setContentView(R.layout.geofence_popup_activity);
-
-//        scanBtn = (Button) findViewById(R.id.getSignatureButton);
-//        scanBtn.setOnClickListener(
-//                view -> {
-//                    Intent intent = new Intent(GeofencePopupActivity.this, CaptureSignature.class);
-//                    startActivity(intent);
-//                }
-//        );
-//        rejectBtn= (Button) findViewById(R.id.rejectBtn);
-//        rejectBtn.setOnClickListener( view -> {
-//            Intent intent = new Intent(GeofencePopupActivity.this, MainActivity.class);
-//            startActivity(intent);
-//        });
-//        closeBtn = (Button) findViewById(R.id.closeBtn);
-//        closeBtn.setOnClickListener( view -> {
-//           finish();
-//        });
         Destination destination = (Destination) getIntent().getSerializableExtra("destination");
         DialogFragment dialog = new GeofenceDialog();
         Bundle bundle = new Bundle();

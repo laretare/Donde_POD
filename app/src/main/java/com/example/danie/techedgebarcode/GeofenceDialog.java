@@ -23,29 +23,19 @@ public class GeofenceDialog extends DialogFragment {
                     @RequiresApi(api = Build.VERSION_CODES.M)
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // FIRE ZE MISSILES!
                         Intent intent = new Intent(getContext(), CaptureSignature.class);
                         startActivity(intent);
                     }
                 })
-                .setNeutralButton("Call Location", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Bundle bundle = getArguments();
-                        String phoneNumber = bundle.getString("phoneNumber");
-                        Intent callIntent = new Intent(Intent.ACTION_DIAL);
-                        callIntent.setData(Uri.parse("tel:" + phoneNumber));
-                        startActivity(callIntent);
+                .setNeutralButton("Call Location", (dialog, which) -> {
+                    Bundle bundle = getArguments();
+                    String phoneNumber = bundle.getString("phoneNumber");
+                    Intent callIntent = new Intent(Intent.ACTION_DIAL);
+                    callIntent.setData(Uri.parse("tel:" + phoneNumber));
+                    startActivity(callIntent);
 
-                    }
                 })
-                .setNegativeButton("X", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //Close
-                        dismiss();
-                    }
-                });
+                .setNegativeButton("X", (dialog, which) -> dismiss());
 
         return popup.create();
     }

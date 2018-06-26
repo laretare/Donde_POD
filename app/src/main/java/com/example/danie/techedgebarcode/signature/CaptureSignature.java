@@ -51,6 +51,7 @@ import com.example.danie.techedgebarcode.LoginActivity;
 import com.example.danie.techedgebarcode.MainActivity;
 import com.example.danie.techedgebarcode.R;
 
+@SuppressWarnings("ALL")
 public class CaptureSignature extends Activity {
 
     LinearLayout mContent;

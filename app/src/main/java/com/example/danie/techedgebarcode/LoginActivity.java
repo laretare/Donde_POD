@@ -2,6 +2,7 @@ package com.example.danie.techedgebarcode;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -43,11 +44,12 @@ public class LoginActivity extends AppCompatActivity {
         userNameTxt = (EditText)findViewById(R.id.userName);
         password = (EditText)findViewById(R.id.password);
         loginBtn = (Button)findViewById(R.id.loginBtn);
+        loginBtn.setBackgroundColor(Color.CYAN);
         loginBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view) {
                         File file = new File(filename);
                         if (file.exists()){
-                            file.delete();
+                            boolean delete = file.delete();
                         }
                        try{
                            outputStream = openFileOutput(filename, Context.MODE_PRIVATE);

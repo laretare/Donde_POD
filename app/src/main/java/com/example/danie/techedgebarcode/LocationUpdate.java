@@ -152,10 +152,10 @@ public class LocationUpdate extends Service {
              private void processResponse(HttpURLConnection connection) throws IOException {
                  Gson gson = new Gson();
                  if (connection.getResponseCode() == 200) {
-//                createPopup("Got Response");
+
                      readData(connection, gson);
                      connection.disconnect();
-//                createPopup("Loading Map Screen");
+
 
                  } else {
                      Log.d(TAG, "" + connection.getResponseCode());
@@ -172,19 +172,13 @@ public class LocationUpdate extends Service {
                  HttpURLConnection connection = (HttpURLConnection) test.openConnection();
                  connection.setRequestMethod("POST");
                  //connection.setRequestProperty("Authorization", encodedAuth);
-                 //Log.v(TAG, "Encoded:" + encodedAuth);
+
                  connection.setRequestProperty("Content-Type", "application/json");
                  connection.setDoOutput(true);
                  return connection;
              }
          }
          private void outputToConnection(HttpURLConnection connection) throws IOException {
-//             String trackingJson = "{" + "\"tracking_info\"" + ":" + "{" +
-//                     "\"bol_number\"" + ":" + "\"" + bol_Number.toString() + "\"" +
-//                     "\"event\"" + ":" + "\"" + "tracking" + "\""+  ","+
-//                     "\"location \"" + ":" + "{" +  "\"latitude \"" + ":" + "\""
-//                     + mLastLocation.getLatitude() +  "\"longitude \"" + ":" + "\""
-//                     + mLastLocation.getLongitude() + "," + "driver_info"+  "}";
              Driver driver = new Driver("bob", "jones", "555-555-5555");
              String trackingJson =
                      "{" +

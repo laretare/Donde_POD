@@ -55,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
     final Handler responseHandler = new Handler(Looper.getMainLooper()){
         @Override
         public void handleMessage(Message msg) {
-            //txtView.setText((String) msg.obj);
             updateScreen();
         }
     };
@@ -68,12 +67,10 @@ public class MainActivity extends AppCompatActivity {
         scanBtn = (Button) findViewById(R.id.scanBtn);
         textComment = (TextView) findViewById(R.id.textComment);
         scanBtn.setOnClickListener(
-            new View.OnClickListener() {
-               public void onClick(View view) {
-                    Intent intent = new Intent(MainActivity.this, Scanner.class);
-                    startActivityForResult(intent, RC_BARCODE_CAPTURE);
-               }
-            }
+                view -> {
+                     Intent intent = new Intent(MainActivity.this, Scanner.class);
+                     startActivityForResult(intent, RC_BARCODE_CAPTURE);
+                }
         );
 
     }
@@ -169,10 +166,8 @@ public class MainActivity extends AppCompatActivity {
         private void processResponse(HttpURLConnection connection) throws IOException {
             Gson gson = new Gson();
             if (connection.getResponseCode() == 200) {
-//                createPopup("Got Response");
                 readData(connection, gson);
                 connection.disconnect();
-//                createPopup("Loading Map Screen");
                 afterResponse(barcode.displayValue);
             } else {
                 Log.v(TAG, ""+ connection.getResponseCode());
