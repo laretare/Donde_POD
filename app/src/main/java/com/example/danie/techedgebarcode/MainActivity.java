@@ -18,7 +18,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import com.example.danie.techedgebarcode.models.Destination;
 import com.example.danie.techedgebarcode.models.Origin;
 import com.google.android.gms.common.api.CommonStatusCodes;
@@ -65,21 +64,30 @@ public class MainActivity extends AppCompatActivity {
 
 
         Uri uriData = getIntent().getData();
-        String uriDataString = uriData.toString();
-        //verify uriDataString
-        int lastIndex = uriDataString.lastIndexOf('/');
-        String uri = uriDataString.substring(0, lastIndex);
-        String expectedHash = uriDataString.substring(lastIndex+1);
-        String actualHash = ToolBarSetup.hashMD5(uri);
-        if(actualHash.equals(expectedHash)) {
-           String bol =  uri.substring(uri.lastIndexOf('/')+1);
-            InternalRunnable ir = new InternalRunnable(bol);
-            AsyncTask.execute(ir);
+
+        if(uriIsValid(uriData)) {
+           String bol =  uriData.getQueryParameter("bol");
+           InternalRunnable ir = new InternalRunnable(bol);
+           AsyncTask.execute(ir);
         } else {
             userName.setText(R.string.Error_bad_bol);
         }
 
     }
+
+    public static boolean uriIsValid(Uri uriData){
+        String authority = uriData.getAuthority();
+        String schemeSpecificPart = uriData.getSchemeSpecificPart();
+        String scheme = uriData.getScheme();
+
+        String hashableUri = scheme + ':' + schemeSpecificPart;
+
+        String expectedHash = uriData.getFragment();
+        String actualHash = ToolBarSetup.hashMD5(hashableUri);
+
+        return !actualHash.isEmpty() && actualHash.equals(expectedHash);
+    }
+
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
