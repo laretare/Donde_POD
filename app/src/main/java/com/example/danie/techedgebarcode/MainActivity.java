@@ -2,6 +2,7 @@ package com.example.danie.techedgebarcode;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,12 +14,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.util.Base64;
 
-import com.amazonaws.http.HttpClient;
-import com.example.danie.techedgebarcode.barcode.Scanner;
+
 import com.example.danie.techedgebarcode.models.Destination;
 import com.example.danie.techedgebarcode.models.Origin;
 import com.google.android.gms.common.api.CommonStatusCodes;
@@ -27,19 +27,11 @@ import com.google.android.gms.vision.barcode.Barcode;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 
-import org.apache.http.client.methods.HttpGetHC4;
-
-import java.io.Console;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -50,10 +42,11 @@ public class MainActivity extends AppCompatActivity {
     private static final int RC_BARCODE_CAPTURE = 9001;
     private static final String TAG = "BarcodeMain";
     static final int REQUEST_IMAGE_CAPTURE = 1;
-    private Button scanBtn, testBtn;
+    private Button scanBtn, pictureBtn;
     private TextView userName, textComment;
     private Origin origin;
     private Destination destination;
+    private ImageView mImageView;
     final Handler responseHandler = new Handler(Looper.getMainLooper()){
         @Override
         public void handleMessage(Message msg) {
@@ -64,45 +57,43 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+        ToolBarSetup.setupToolBar(this);
         userName = (TextView) findViewById(R.id.userName);
         userName.setText(String.format(" Welcome, \n%s", getIntent().getStringExtra("name")));
-        scanBtn = (Button) findViewById(R.id.scanBtn);
-        testBtn= (Button) findViewById(R.id.testBtn);
-        testBtn.setOnClickListener(new View.OnClickListener(){
+        mImageView = (ImageView) findViewById(R.id.imageView);
+        textComment = (TextView) findViewById(R.id.textComment);
 
-            @Override
-            public void onClick(View v) {
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-                }
-            }
-        });
-       // textComment = (TextView) findViewById(R.id.textComment);
-        scanBtn.setOnClickListener(
-                view -> {
-                     Intent intent = new Intent(MainActivity.this, Scanner.class);
-                     startActivityForResult(intent, RC_BARCODE_CAPTURE);
-                }
-        );
+
+        Uri uriData = getIntent().getData();
+        String uriDataString = uriData.toString();
+        //verify uriDataString
+        int lastIndex = uriDataString.lastIndexOf('/');
+        String uri = uriDataString.substring(0, lastIndex);
+        String expectedHash = uriDataString.substring(lastIndex+1);
+        String actualHash = ToolBarSetup.hashMD5(uri);
+        if(actualHash.equals(expectedHash)) {
+           String bol =  uri.substring(uri.lastIndexOf('/')+1);
+            InternalRunnable ir = new InternalRunnable(bol);
+            AsyncTask.execute(ir);
+        } else {
+            userName.setText(R.string.Error_bad_bol);
+        }
 
     }
-
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        Toast toast = null;
-        if (requestCode == RC_BARCODE_CAPTURE) {
-            if (resultCode == CommonStatusCodes.SUCCESS && data != null) {
-                final Barcode barcode = data.getParcelableExtra(Scanner.BarcodeObject);
-                InternalRunnable ir = new InternalRunnable(barcode);
-                AsyncTask.execute(ir);
-            } else {
-                doErrorMessage(resultCode);
-            }
-        }
+
+
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
             Bitmap imageBitmap = (Bitmap) extras.get("data");
+            mImageView.setImageBitmap(imageBitmap);
 
         }
         else {
@@ -145,15 +136,15 @@ public class MainActivity extends AppCompatActivity {
     private void updateScreen() {
         userName.setText("Working");
         textComment.setText("Getting info from Server");
-        scanBtn.setVisibility(View.INVISIBLE);
+
     }
 
 
     class InternalRunnable implements Runnable {
 
-        Barcode barcode;
+        String barcode;
 
-        InternalRunnable(Barcode barcode) {
+        InternalRunnable(String barcode) {
             this.barcode = barcode;
         }
 
@@ -176,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         private HttpURLConnection makeRequest() throws IOException {
             URL url;
             url = new URL("http://developmenttest.clearviewaudit.com/api/v1/dondepod/bol/data");
-            HttpURLConnection connection = buildConnection(url, barcode.displayValue);
+            HttpURLConnection connection = buildConnection(url, barcode);
             connection.setInstanceFollowRedirects(true);
             HttpURLConnection.setFollowRedirects(true);
             return connection;
@@ -187,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
             if (connection.getResponseCode() == 200) {
                 readData(connection, gson);
                 connection.disconnect();
-                afterResponse(barcode.displayValue);
+                afterResponse(barcode);
             } else {
                 Log.v(TAG, ""+ connection.getResponseCode());
                 Log.v(TAG, "" + connection.getResponseMessage() );

@@ -6,10 +6,12 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.example.danie.techedgebarcode.models.Destination;
 import com.google.gson.Gson;
@@ -33,6 +35,7 @@ public class LoginActivity extends AppCompatActivity {
     private FileOutputStream outputStream;
     private Button loginBtn;
     private EditText userNameTxt, password;
+    private TextView link;
 
     private static final String TAG = "LoginActivity";
     @Override
@@ -43,6 +46,9 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.login);
         userNameTxt = (EditText)findViewById(R.id.userName);
         password = (EditText)findViewById(R.id.password);
+        link = (TextView) findViewById(R.id.extVtiew5);
+        link.setMovementMethod(LinkMovementMethod.getInstance());
+        link.setText("https://play.google.com/dondePOD/hi");
         loginBtn = (Button)findViewById(R.id.loginBtn);
         loginBtn.setBackgroundColor(Color.CYAN);
         loginBtn.setOnClickListener(new View.OnClickListener(){
@@ -69,12 +75,7 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private void startUserService() {
-        Log.v(TAG, "Starting LocationService");
-        Intent userServiceIntent = new Intent(this, LocationUpdate.class);
-        startService(userServiceIntent);
-        Log.v(TAG, "Finishing Start of LocationService");
-    }
+
 
 
 }

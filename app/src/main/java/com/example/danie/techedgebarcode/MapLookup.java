@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import android.support.annotation.Nullable;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 
 
@@ -41,6 +42,7 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -147,6 +149,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         destinationName.setText(temp.getCompany());
         destinationStreet.setText(temp.getAddress());
         destinationNumber.setText(String.format("%s %s", temp.getPhone(), temp.getName()));
+        ToolBarSetup.setupToolBar(this);
     }
 
     private void startUserService() {

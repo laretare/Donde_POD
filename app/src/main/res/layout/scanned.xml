@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--suppress ALL -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_child_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_weight="0"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <TableLayout
         android:layout_width="match_parent"
@@ -10,7 +23,7 @@
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="134dp"
             android:layout_weight="100">
 
             <com.mapbox.mapboxsdk.maps.MapView
@@ -24,7 +37,7 @@
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.2">
+            android:layout_weight="0.1">
 
             <TextView
                 android:id="@+id/pickupLabel"
@@ -38,17 +51,17 @@
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1" >
+            android:layout_weight="0">
 
             <TableLayout
                 android:layout_width="342dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1">
+                android:layout_weight="0">
 
                 <TableRow
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.5" >
+                    android:layout_weight="0">
 
                     <TextView
                         android:id="@+id/companyPickup"
@@ -60,7 +73,7 @@
                 <TableRow
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.5" >
+                    android:layout_weight="0">
 
                     <TextView
                         android:id="@+id/pickupAddress"
@@ -73,7 +86,7 @@
                 <TableRow
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.5" >
+                    android:layout_weight="0">
 
                     <TextView
                         android:id="@+id/pickupNumber"
@@ -83,22 +96,18 @@
 
                 </TableRow>
 
-                <TableRow
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.5" />
             </TableLayout>
         </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.5" >
+            android:layout_weight="0.1">
 
             <TextView
                 android:id="@+id/deliveryLabel"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:text="Delivery"
                 android:textAppearance="@style/TextAppearance.AppCompat.Display2"
                 android:textStyle="bold" />
@@ -107,18 +116,44 @@
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1" >
+            android:layout_weight="1">
 
             <TableLayout
-                android:layout_width="342dp"
+                android:layout_width="233dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1">
+                android:layout_weight="0">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0">
+
+                    <TextView
+                        android:id="@+id/deliveryNumber"
+                        android:layout_width="238dp"
+                        android:layout_height="wrap_content"
+                        android:text="123-456-7891" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0">
+
+                    <TextView
+                        android:id="@+id/deliveryStreet"
+                        android:layout_width="318dp"
+                        android:layout_height="wrap_content"
+                        android:text="123 foo st" />
+
+                </TableRow>
 
                 <TableRow
                     android:id="@+id/deliveryState"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.5">
+                    android:layout_weight="0">
 
                     <TextView
                         android:id="@+id/deliveryCompany"
@@ -131,57 +166,24 @@
                 <TableRow
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.5">
+                    android:layout_weight="0.1">
 
-                    <TextView
-                        android:id="@+id/deliveryStreet"
-                        android:layout_width="318dp"
+                    <Button
+                        android:id="@+id/sendDriver"
+                        android:layout_width="265dp"
                         android:layout_height="wrap_content"
-                        android:text="123 foo st" />
+                        android:layout_weight="0.1"
+                        android:text="Start Tracking" />
 
-                </TableRow>
-
-                <TableRow
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.5">
-
-                    <TextView
-                        android:id="@+id/deliveryNumber"
-                        android:layout_width="238dp"
+                    <Button
+                        android:id="@+id/settings"
+                        android:layout_width="182dp"
                         android:layout_height="wrap_content"
-                        android:text="123-456-7891" />
-
+                        android:text="Tracking Settings" />
                 </TableRow>
 
             </TableLayout>
         </TableRow>
-    </TableLayout>
-
-    <TableLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="6">
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5">
-
-            <Button
-                android:id="@+id/sendDriver"
-                android:layout_width="265dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.5"
-                android:text="Start Tracking" />
-
-            <Button
-                android:id="@+id/settings"
-                android:layout_width="182dp"
-                android:layout_height="match_parent"
-                android:text="Tracking Settings" />
-        </TableRow>
-
     </TableLayout>
 
 </LinearLayout>
