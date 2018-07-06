@@ -12,17 +12,17 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import android.support.annotation.Nullable;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 
 
-import com.example.danie.techedgebarcode.models.Destination;
-import com.example.danie.techedgebarcode.models.Origin;
+import com.example.danie.techedgebarcode.signature.CaptureSignature;
+import com.example.danie.util.models.Destination;
+import com.example.danie.util.models.Origin;
+import com.example.danie.util.ToolBarSetup;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
-import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.mapbox.android.core.location.LocationEngine;
@@ -42,7 +42,6 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -63,7 +62,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Created by danie on 1/25/2018.
+ * Created by Daniel Menard on 1/25/2018.
  */
 
 public class MapLookup extends AppCompatActivity implements LocationEngineListener, PermissionsListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -72,19 +71,14 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     private MapboxMap mMap;
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationPlugin;
-    double lat;
-    double lng;
     private LocationEngine locationEngine;
     private Location originLocation;
     private Marker destinationMarker;
-    private LatLng originCoord;
-    private LatLng destinationCoord;
     private Point originPosition;
     private Point destinationPosition;
     private DirectionsRoute currentRoute;
     private NavigationMapRoute navigationMapRoute;
-//    private PendingIntent mGeofencePendingIntent;
-    private Button button, settingBtn;
+
     private Geofence geofence;
     private GeofencingClient mGeofencingClient;
     private GoogleApiClient mGoogleApiClient;
@@ -120,10 +114,6 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         finish();
     }
 
-    private Location convertDestination() {
-        return new Location("destination");
-    }
-
     @NonNull
     private Destination getDestination() {
         return (Destination) getIntent().getSerializableExtra("Destination");
@@ -149,7 +139,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         destinationName.setText(temp.getCompany());
         destinationStreet.setText(temp.getAddress());
         destinationNumber.setText(String.format("%s %s", temp.getPhone(), temp.getName()));
-        ToolBarSetup.setupToolBar(this);
+        ToolBarSetup.setupToolBar(this, R.id.my_child_toolbar);
     }
 
     private void startUserService() {
@@ -162,13 +152,6 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         Log.v(TAG, "Finishing Start of LocationService");
     }
 
-    private GeofencingRequest getGeofencingRequest() {
-        Log.v(TAG, "GeoFence Step 2");
-        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
-        builder.addGeofence(geofence);
-        return builder.build();
-    }
 
     private void getRoute(Point origin, Point destination) {
         NavigationRoute.builder()
@@ -295,22 +278,22 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     }
 
 // gets the lat and lng from a location
-    public void getLatLongFromPlace(String place) {
+    public LatLng getLatLongFromPlace(String place) {
         try {
             Geocoder selected_place_geocoder = new Geocoder(getApplicationContext());
             List<Address> address;
 
             address = selected_place_geocoder.getFromLocationName(place, 5);
 
-            if (address == null) {
-            } else {
+            if (address != null) {
                 Address location = address.get(0);
-                lat = location.getLatitude();
-                lng = location.getLongitude();
+                return new LatLng(location.getLatitude(), location.getLongitude());
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     @Override
@@ -338,17 +321,6 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         map.onSaveInstanceState(outState);
     }
 
-//    private PendingIntent getGeofencePendingIntent() {
-//        Log.v(TAG, "GeoFence Step 3");
-//        // Reuse the PendingIntent if we already have it.
-//        if (mGeofencePendingIntent != null) {
-//            return mGeofencePendingIntent;
-//        }
-//        Intent intent = new Intent(this, MyService.class);
-//        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling addGeofences() and removeGeofences().
-//        mGeofencePendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//        return mGeofencePendingIntent;
-//    }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -367,6 +339,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        assert manager != null;
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceClass.getName().equals(service.service.getClassName())) {
                 return true;
@@ -430,28 +403,32 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         public void onMapReady(final MapboxMap mapboxMap) {
             mMap = mapboxMap;
             enableLocationPlugin();
-            getLatLongFromPlace(origin.getAddress());
-            originCoord = new LatLng(lat, lng);
-            Location Origin = new Location("");
-            getLatLongFromPlace(origin.getAddress());
-            destinationCoord = new LatLng(lat, lng);
-            destinationMarker = mapboxMap.addMarker(new MarkerOptions()
-                    .position(destinationCoord)
-            );
 
-            destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
-            originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
-            getRoute(originPosition, destinationPosition);
-            button = (Button) findViewById(R.id.sendDriver);
-            button.setOnClickListener( new ViewOnClickListener() );
-            settingBtn = (Button) findViewById(R.id.settings);
-            settingBtn.setOnClickListener( new View.OnClickListener() {
+            LatLng originCoord = getLatLongFromPlace(origin.getAddress());
+            LatLng destinationCoord = getLatLongFromPlace(destination.getAddress());
 
-                @Override
-                public void onClick(View v) {
-                    Intent settings = new Intent(MapLookup.this, Settings.class);
-                }
-            });
+            if(destinationCoord != null && originCoord != null){
+                destinationMarker = mapboxMap.addMarker(new MarkerOptions()
+                        .position(destinationCoord)
+                );
+                destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
+
+                originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
+                getRoute(originPosition, destinationPosition);
+                Button button = (Button) findViewById(R.id.sendDriver);
+                button.setOnClickListener( new ViewOnClickListener() );
+                Button settingBtn = (Button) findViewById(R.id.settings);
+                settingBtn.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        Intent settings = new Intent(MapLookup.this, Settings.class);
+                    }
+                });
+            } else {
+                Toast.makeText(getApplicationContext(), "Error missing Coordinates", Toast.LENGTH_LONG).show();
+            }
+
         }
 
         private NavigationLauncherOptions setupNavLauncherOptions(Point origin, Point destination) {
@@ -462,19 +439,6 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
                     .build();
         }
 
-//        private void setupGeoFencingClient() {
-//            Log.v(TAG, "GeoFence Step 1");
-//            mGeofencingClient
-//                .addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
-//                .addOnSuccessListener(
-//                    new OnSuccessListener<Void>() {
-//                        @Override
-//                        public void onSuccess(Void aVoid) {
-//                            Log.e("test", "" + isMyServiceRunning(MyService.class));
-//                        }
-//                    } );
-//        }
-
         @NonNull
         private LocationRequest getLocationRequest() {
             return LocationRequest.create()
@@ -483,45 +447,30 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
                     .setFastestInterval(1000);
         }
 
-        @NonNull
-        private Geofence buildGeofence() {
-            Log.v(TAG, "GeoFence Step 0");
-            return new Geofence.Builder()
-                    .setRequestId("Destination")
-                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
-                    .setCircularRegion(lat, lng, 20)
-                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                    .build();
-        }
-
         class ViewOnClickListener implements View.OnClickListener {
 
-            @SuppressLint("MissingPermission")
-            public void onClick(View v) {
-                Point origin = originPosition;
-                Point destination = destinationPosition;
+        @SuppressLint("MissingPermission")
+        public void onClick(View v) {
+//            Point origin = originPosition;
+//            Point destination = destinationPosition;
+//
+//            locationRequest = getLocationRequest();
+//
+//            if ( ! PermissionsManager.areLocationPermissionsGranted(MapLookup.this)) {
+//                permissionsManager = new PermissionsManager(MapLookup.this);
+//                permissionsManager.requestLocationPermissions(MapLookup.this);
+//            }
+//
+//
+//            Log.v(TAG, "About to start Location Service");
+//            startUserService();
+            Intent intent = new Intent(getApplicationContext(), CaptureSignature.class);
+            startActivity(intent);
 
-                locationRequest = getLocationRequest();
 
-                if ( ! PermissionsManager.areLocationPermissionsGranted(MapLookup.this)) {
-                    permissionsManager = new PermissionsManager(MapLookup.this);
-                    permissionsManager.requestLocationPermissions(MapLookup.this);
-                }
-
-//                Log.v(TAG, "About to start Geofencing");
-//                geofence = buildGeofence();
-//                setupGeoFencingClient();
-
-                Log.v(TAG, "About to start Location Service");
-                startUserService();
-
-                // Create a NavigationLauncherOptions object to package everything together
-                NavigationLauncherOptions options = setupNavLauncherOptions(origin, destination);
-//                NavigationLauncher.startNavigation(MapLookup.this, options);
-
-            }
         }
     }
+}
 
 
 }

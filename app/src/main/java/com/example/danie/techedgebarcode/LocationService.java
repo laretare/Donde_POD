@@ -25,9 +25,9 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Base64;
 import android.util.Log;
 
-import com.example.danie.techedgebarcode.driver.Driver;
-import com.example.danie.techedgebarcode.models.Destination;
-import com.example.danie.techedgebarcode.models.Origin;
+import com.example.danie.util.driver.Driver;
+import com.example.danie.util.models.Destination;
+import com.example.danie.util.models.Origin;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -240,7 +240,7 @@ public class LocationService extends Service {
             @NonNull
             private HttpURLConnection makeRequest() throws IOException {
                 URL url;
-                url = new URL("http://developmenttest.clearviewaudit.com/api/v1/dondepod/trackingevent");
+                url = new URL("http://api.dondepod.com/api/v1/dondepod/trackingevent");
                 HttpURLConnection connection = buildConnection(url);
                 outputToConnection(connection);
                 connection.setInstanceFollowRedirects(true);

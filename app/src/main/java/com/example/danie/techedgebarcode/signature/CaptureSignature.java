@@ -1,27 +1,33 @@
 package com.example.danie.techedgebarcode.signature;
 
 import android.app.Activity;
-import android.app.Service;
-import android.content.pm.ActivityInfo;
-import android.graphics.PixelFormat;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 
 /**
- * Created by danie on 3/6/2018.
+ * Created by Daniel Menard on 3/6/2018.
  */
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import android.util.Base64;
 import java.util.Calendar;
+import java.util.Scanner;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -31,25 +37,24 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore.Images;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.example.danie.techedgebarcode.LoginActivity;
 import com.example.danie.techedgebarcode.MainActivity;
 import com.example.danie.techedgebarcode.R;
+import com.example.danie.util.ToolBarSetup;
+
+import org.json.JSONObject;
 
 @SuppressWarnings("ALL")
 public class CaptureSignature extends Activity {
@@ -112,28 +117,13 @@ public class CaptureSignature extends Activity {
                 Log.v("log_tag", "Panel Saved");
                 boolean error = captureSignature();
                 if(!error){
-                    File directory = getApplicationContext().getFilesDir();
-                    File usernameFile = new File(directory, "user_Profile.txt");
-                    StringBuilder username = new StringBuilder();
-                    try{
-                        BufferedReader br = new BufferedReader(new FileReader(usernameFile));
-                        String fileLine;
-                        while((fileLine = br.readLine()) != null){
-                            username.append(fileLine);
-                        }
-                        br.close();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                     mView.setDrawingCacheEnabled(true);
                     mSignature.save(mView);
                     Bundle b = new Bundle();
                     b.putString("status", "done");
                     Intent intent = new Intent(CaptureSignature.this, MainActivity.class);
                     intent.putExtras(b);
-                    intent.putExtra("name", username.toString());
+                    intent.putExtra("name", ToolBarSetup.getUserName(CaptureSignature.this));
                     setResult(RESULT_OK,intent);
                     Toast.makeText(CaptureSignature.this,"finished", Toast.LENGTH_LONG).show();
                     startActivity(intent);
@@ -141,6 +131,7 @@ public class CaptureSignature extends Activity {
 
                 }
             }
+
         });
 
         mCancel.setOnClickListener(new OnClickListener()
@@ -280,12 +271,49 @@ public class CaptureSignature extends Activity {
             {
                 FileOutputStream mFileOutStream = new FileOutputStream(mypath);
 
-                v.draw(canvas);
-                mBitmap.compress(Bitmap.CompressFormat.PNG, 90, mFileOutStream);
-                mFileOutStream.flush();
-                mFileOutStream.close();
-                String url = Images.Media.insertImage(getContentResolver(), mBitmap, "title", null);
-                Log.v("log_tag","url: " + url);
+                AsyncTask.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        URL url = null;
+                        try {
+                            JSONObject object = new JSONObject();
+
+                            url = new URL("http://192.168.1.113:3000/api/v1/dondepod/upload_image");
+                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                            connection.setDoInput(true);
+                            connection.setRequestMethod("POST");
+                            connection.setRequestProperty("Content-Type", "application/json");
+                            connection.setDoOutput(true);
+
+                            OutputStream output = connection.getOutputStream();
+                            OutputStreamWriter osw = new OutputStreamWriter(output, "UTF-8");
+                            v.draw(canvas);
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            mBitmap.compress(Bitmap.CompressFormat.PNG, 90, baos);
+                            String image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+                            image = image.replace(System.getProperty("line.separator"), "");
+                            String imageJson = "{" +
+                                                "\"image\" : \"" + image + "\"" +
+                                                "}";
+                           // imageJson = imageJson.replace(System.getProperty("line.separator"), "");
+                            osw.write(imageJson);
+                            //osw.write(image);
+                            osw.flush();
+                            osw.close();
+                            output.close();
+                            connection.connect();
+                            Log.v("log_tag","url: " + url);
+                            Scanner result = new Scanner(connection.getInputStream());
+                            String response = result.nextLine();
+                            Log.e("ImageUploader", "Error uploading image: " + response);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                });
+
+
                 //In case you want to delete the file
                 //boolean deleted = mypath.delete();
                 //Log.v("log_tag","deleted: " + mypath.toString() + deleted);

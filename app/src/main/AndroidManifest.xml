@@ -11,14 +11,16 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.SEND_SMS"/>
     <uses-feature android:name="android.hardware.camera"
-        android:required="true" />
+        android:required="true"/>
+
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/donde_pod"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/donde_pod"
         android:supportsRtl="true"
+        tools:replace="android:theme"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         android:minSdkVersion="15"
         android:maxSdkVersion="27"
@@ -31,8 +33,11 @@
             android:value="@integer/google_play_services_version" />
 
         <activity android:name=".MainActivity"
-            android:screenOrientation="portrait"
-            tools:targetApi="jelly_bean">
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
                 <action android:name="android.intent.action.VIEW" />
@@ -43,7 +48,9 @@
                 android:pathPrefix="/dondePOD">
                  </data>
             </intent-filter>
+
         </activity>
+
 
         <activity android:name=".MapLookup"
             android:label="Map"
@@ -63,13 +70,6 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MapLookup" />
-        </activity>
-
-        <activity android:name=".LoginActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
         </activity>
 
         <activity android:name=".Settings">

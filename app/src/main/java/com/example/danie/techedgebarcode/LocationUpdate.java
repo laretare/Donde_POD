@@ -18,7 +18,8 @@ import android.util.Base64;
 import android.util.Log;
 
 
-import com.example.danie.techedgebarcode.driver.Driver;
+
+import com.example.danie.util.driver.Driver;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 

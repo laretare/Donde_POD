@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.widget.Button;
 
-import com.example.danie.techedgebarcode.models.Destination;
+import com.example.danie.util.models.Destination;
 
 public class GeofencePopupActivity extends FragmentActivity {
     private Button scanBtn, rejectBtn, closeBtn;
