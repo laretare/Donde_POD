@@ -1,10 +1,21 @@
 package com.example.danie.techedgebarcode;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -16,31 +27,36 @@ import com.example.danie.util.models.Destination;
 import com.example.danie.util.models.Origin;
 import com.example.danie.util.ToolBarSetup;
 
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Scanner;
+
 
 /**
  * Created by Daniel Menard on 1/27/2018.
  */
 
 public class MainActivity extends MainActivityUtil {
-  //  private static final int RC_BARCODE_CAPTURE = 9001;
-    private Button mSign;
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int REQUEST_TAKE_PHOTO= 1;
+    private String mCurrentPhotoPath;
 
-
-//    final Handler responseHandler = new Handler(Looper.getMainLooper()){
-//        @Override
-//        public void handleMessage(Message msg) {
-//            updateScreen();
-//        }
-//    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
-        userName = (TextView) findViewById(R.id.userName);
-        mImageView = (ImageView) findViewById(R.id.imageView);
-        textComment = (TextView) findViewById(R.id.textComment);
-        mSign = (Button) findViewById(R.id.signature);
+        userName =  findViewById(R.id.userName);
+        mImageView =  findViewById(R.id.imageView);
+        textComment = findViewById(R.id.textComment);
+        Button mSign = findViewById(R.id.signature);
         Uri uriData = getIntent().getData();
         if( uriData != null && uriIsValid(uriData)) {
            String bol =  uriData.getQueryParameter("bol");
@@ -49,13 +65,78 @@ public class MainActivity extends MainActivityUtil {
         } else {
             userName.setText(R.string.Error_bad_bol);
         }
-        mSign.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), CaptureSignature.class);
-                startActivity(intent);
-            }
+        mSign.setOnClickListener(v -> {
+            dispatchTakePictureIntent();
         });
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "PNG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".png",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA}, 0);
+        } else {
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                // Create the File where the photo should go
+                File photoFile = null;
+                try {
+                    photoFile = createImageFile();
+                } catch (IOException ex) {
+
+                }
+                // Continue only if the File was successfully created
+                if (photoFile != null) {
+                    Uri photoURI = FileProvider.getUriForFile(this,
+                            "com.example.danie.techedgebarcode",
+                            photoFile);
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+                }
+            }
+        }
+
+
+    }
+    private Bitmap setPic() {
+        // Get the dimensions of the View
+        int targetW = 300;
+        int targetH = 300;
+
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
+        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+        return bitmap;
     }
 
     protected Class<?> getMapLookupClass(){
@@ -63,7 +144,6 @@ public class MainActivity extends MainActivityUtil {
     }
 
     public static boolean uriIsValid(Uri uriData){
-        String authority = uriData.getAuthority();
         String schemeSpecificPart = uriData.getSchemeSpecificPart();
         String scheme = uriData.getScheme();
 
@@ -79,10 +159,25 @@ public class MainActivity extends MainActivityUtil {
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
 
 
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            mImageView.setImageBitmap(imageBitmap);
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
+
+
+            AsyncTask.execute(() -> {
+                URL url = null;
+                try {
+                    url = new URL("http://192.168.1.113:3000/api/v1/dondepod/upload_image");
+                    Bitmap imageBitmap = setPic();
+                    HttpURLConnection connection = getHttpURLConnection(url);
+                    sendImage(imageBitmap, connection);
+                    Log.v("log_tag","url: " + url);
+                    Scanner result = new Scanner(connection.getInputStream());
+                    String response = result.nextLine();
+                    Log.e("ImageUploader", "Error uploading image: " + response);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            });
 
         }
         else {
@@ -90,109 +185,41 @@ public class MainActivity extends MainActivityUtil {
         }
     }
 
-//    private void afterResponse(String bol) {
-//        Log.v(TAG, "Step 4");
-//        Intent intent = new Intent(this, MapLookup.class);
-//        intent.putExtra("Origin", origin);
-//        intent.putExtra("Destination", destination);
-//        intent.putExtra("bol_number", bol);
-//        startActivity(intent);
-//    }
+    private void sendImage(Bitmap imageBitmap, HttpURLConnection connection) throws IOException {
+        OutputStream output = connection.getOutputStream();
+        OutputStreamWriter osw = new OutputStreamWriter(output, "UTF-8");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        imageBitmap.compress(Bitmap.CompressFormat.PNG, 90, baos);
+        String image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+        image = image.replace(System.getProperty("line.separator"), "");
+        String imageJson = "{" +
+                "\"shipment_id\" : \"" + ToolBarSetup.SHIPMENT_ID +"\"," +
+                "\"image_of\" : \"picture of whatever\"," +
+                "\"image\" : \"" + image + "\"" +
+                "}";
+        osw.write(imageJson);
+        osw.flush();
+        osw.close();
+        output.close();
+        connection.connect();
+    }
+
+    @NonNull
+    private HttpURLConnection getHttpURLConnection(URL url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setDoInput(true);
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setDoOutput(true);
+        return connection;
+    }
 
 
     protected void updateScreen() {
-        userName.setText("Working");
-        textComment.setText("Getting info from Server");
+        userName.setText(R.string.work);
+        textComment.setText(R.string.info);
 
     }
 
-//
-//    class InternalRunnable implements Runnable {
-//
-//        String barcode;
-//
-//        InternalRunnable(String barcode) {
-//            this.barcode = barcode;
-//        }
-//
-//        @Override
-//        public void run() {
-//            URL test;
-//            try {
-//                Log.v(TAG, "Step 1");
-//                HttpURLConnection connection = makeRequest();
-//                Log.v(TAG, "Step 2");
-//                changeScreen();
-//                processResponse(connection);
-//                Log.v(TAG, "Step 3");
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        @NonNull
-//        private HttpURLConnection makeRequest() throws IOException {
-//            URL url;
-//            url = new URL("http://developmenttest.clearviewaudit.com/api/v1/dondepod/bol/data");
-//            HttpURLConnection connection = buildConnection(url, barcode);
-//            connection.setInstanceFollowRedirects(true);
-//            HttpURLConnection.setFollowRedirects(true);
-//            return connection;
-//        }
-//
-//        private void processResponse(HttpURLConnection connection) throws IOException {
-//            Gson gson = new Gson();
-//            if (connection.getResponseCode() == 200) {
-//                readData(connection, gson);
-//                connection.disconnect();
-//                afterResponse(barcode);
-//            } else {
-//                Log.v(TAG, ""+ connection.getResponseCode());
-//                Log.v(TAG, "" + connection.getResponseMessage() );
-//                Log.v(TAG, ""+ connection.getContent().toString());
-//            }
-//        }
-//
-//        private void changeScreen() {
-//            responseHandler.sendMessage(new Message());
-//        }
-//
-//        private void readData(HttpURLConnection connection, Gson gson) throws IOException {
-//            InputStream responseBody = connection.getInputStream();
-//
-//            InputStreamReader responseBodyReader =
-//                    new InputStreamReader(responseBody, "UTF-8");
-//            JsonReader jsonReader = new JsonReader(responseBodyReader);
-//            jsonReader.beginObject();
-//            while (jsonReader.hasNext()) {
-//
-//                String name = jsonReader.nextName();
-//                if (name.equals("origin_stop")) {
-//                    origin = gson.fromJson(jsonReader, Origin.class);
-//                } else if (name.equals("destination_stop")) {
-//                    destination = gson.fromJson(jsonReader, Destination.class);
-//
-//                } else {
-//                    jsonReader.skipValue();
-//                }
-//            }
-//            jsonReader.endObject();
-//            jsonReader.close();
-//        }
-//
-//
-//
-//        @NonNull
-//        private HttpURLConnection buildConnection(URL test, String bol_number) throws IOException {
-//            /*String userCredentials = getString(R.string.login);
-//            byte[] encodeValue = Base64.encode(userCredentials.getBytes(), Base64.DEFAULT);
-//            String encodedAuth = "Basic " + userCredentials;*/
-//
-//            HttpURLConnection connection = (HttpURLConnection) test.openConnection();
-//            connection.setRequestMethod("GET");
-//            connection.setRequestProperty("bol_number", bol_number);
-//            connection.setRequestProperty("Content-Type", "application/json");
-//            return connection;
-//        }
-//    }
+
 }

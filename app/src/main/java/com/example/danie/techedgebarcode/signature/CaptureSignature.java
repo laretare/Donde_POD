@@ -293,11 +293,13 @@ public class CaptureSignature extends Activity {
                             String image = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
                             image = image.replace(System.getProperty("line.separator"), "");
                             String imageJson = "{" +
+                                                "\"name\" : \"" + yourName.getText().toString() + "\"," +
+//                                                "\"shipment_id\" : \"" + ToolBarSetup.SHIPMENT_ID + "\"" +
+                                                "\"shipment_id\" : \"" + ToolBarSetup.SHIPMENT_ID +"\"," +
+                                                "\"image_of\" : \"signature\"," +
                                                 "\"image\" : \"" + image + "\"" +
                                                 "}";
-                           // imageJson = imageJson.replace(System.getProperty("line.separator"), "");
                             osw.write(imageJson);
-                            //osw.write(image);
                             osw.flush();
                             osw.close();
                             output.close();

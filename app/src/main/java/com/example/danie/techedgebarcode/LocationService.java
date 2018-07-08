@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -52,7 +53,7 @@ public class LocationService extends Service {
     private static final int locationUpdateTime = 500;
     private static final float location_Distance = 10f;
     private  String bol_Number = null;
-//    private Context context = this.getApplicationContext();
+    private HttpURLConnection connection;
     LocationListener[] mLocationListeners;
     Destination destination;
     Origin origin;
@@ -212,7 +213,9 @@ public class LocationService extends Service {
                 Log.e(TAG, "onLocationChanged: " + location);
             } else {
                 Intent intent = new Intent(getApplicationContext(), GeofencePopupActivity.class);
+                mLastLocation.set(location);
                 intent.putExtra("destination", destination);
+                endOfTracking(mLastLocation);
                 startActivity(intent);
                 Log.v(TAG, "Got to destination");
                 stopSelf();
@@ -282,7 +285,7 @@ public class LocationService extends Service {
                 byte[] encodeValue = Base64.encode(userCredentials.getBytes(), Base64.DEFAULT);
                 String encodedAuth = "Basic " + userCredentials;
 
-                HttpURLConnection connection = (HttpURLConnection) test.openConnection();
+                connection = (HttpURLConnection) test.openConnection();
                 connection.setRequestMethod("POST");
                 //connection.setRequestProperty("Authorization", encodedAuth);
                 connection.setRequestProperty("Content-Type", "application/json");
@@ -338,6 +341,45 @@ public class LocationService extends Service {
         {
             Log.e(TAG, "onStatusChanged: " + provider + ":" + status + ":"+extras.toString());
         }
+    }
+
+    private void endOfTracking(Location mLastLocation) {
+        try {
+            sendDoneTrackingMessage(mLastLocation);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendDoneTrackingMessage(Location mLastLocation) throws IOException {
+        Driver driver = new Driver("bob", "jones", "555-555-5555");
+        String trackingJson =
+                "{" +
+                        "\"api_key\" :" + getString(R.string.api_key) +
+                        "\"tracking_info\":{" +
+                        "\"shipment_number\": \"" + bol_Number + "\"," +
+                        "\"event\":   \"Arrived\","  +
+                        "\"driver_info\": {" +
+                        "\"first\": \"" + driver.getFirstName() + "\"," +
+                        "\"last\": \"" + driver.getLastName() + "\"," +
+                        "\"phone\": \"" + driver.getPhonenumber() + "\"" +
+                        "}," +
+                        "\"location\":   {" +
+                        "\"latitude\": " + mLastLocation.getLatitude() + "," +
+                        "\"longitude\":" + mLastLocation.getLongitude() +
+                        "}" +
+                        "}" +
+                        "}";
+        Log.e(TAG, trackingJson);
+
+        OutputStream os = connection.getOutputStream();
+
+        OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+
+        osw.write(trackingJson);
+        osw.flush();
+        osw.close();
+        os.close();  //don't forget to close the OutputStream
     }
 
 }

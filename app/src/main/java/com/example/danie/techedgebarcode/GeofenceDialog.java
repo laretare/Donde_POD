@@ -19,13 +19,12 @@ public class GeofenceDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder popup = new AlertDialog.Builder(getActivity());
         popup.setMessage("You have arrived.")
-                .setPositiveButton("Deliver", new DialogInterface.OnClickListener() {
-                    @RequiresApi(api = Build.VERSION_CODES.M)
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(getContext(), CaptureSignature.class);
-                        startActivity(intent);
+                .setPositiveButton("Deliver", (DialogInterface dialog, int which) -> {
+                    Intent intent = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        intent = new Intent(getContext(), CaptureSignature.class);
                     }
+                    startActivity(intent);
                 })
                 .setNeutralButton("Call Location", (dialog, which) -> {
                     Bundle bundle = getArguments();

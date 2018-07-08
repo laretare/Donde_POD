@@ -20,4 +20,6 @@
     <string name="login">dondepodtest@swanleap.com:Vw2E4akb</string>
     <string name="api_key">\"ALD5QpQtxn2QG8fDdvCa4HGPXqydNPvY\",</string>
     <string name="Error_bad_bol">Error BOL not found</string>
+    <string name="work">Working</string>
+    <string name="info">Getting info from Server</string>
 </resources>
