@@ -23,6 +23,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static com.example.danie.util.ToolBarSetup.API;
+
 
 /**
  * Created by danie on 1/27/2018.
@@ -34,8 +36,8 @@ public abstract class MainActivityUtil extends AppCompatActivity {
 //    static final int REQUEST_IMAGE_CAPTURE = 1;
     protected Button scanBtn, pictureBtn;
     protected TextView userName, textComment;
-    protected Origin origin;
-    protected Destination destination;
+    protected static Origin origin;
+    protected static Destination destination;
     protected ImageView mImageView;
 
     protected abstract Class<?> getMapLookupClass();
@@ -65,6 +67,14 @@ public abstract class MainActivityUtil extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public static Origin getOrigin() {
+        return origin;
+    }
+
+    public static Destination getDestination() {
+        return destination;
+    }
+
     protected class InternalRunnable implements Runnable {
 
         String barcode;
@@ -91,7 +101,7 @@ public abstract class MainActivityUtil extends AppCompatActivity {
         @NonNull
         private HttpURLConnection makeRequest() throws IOException {
             URL url;
-            url = new URL("http://192.168.1.113:3000/api/v1/dondepod/bol/data");
+            url = new URL(API + "/api/v1/dondepod/bol/data");
             HttpURLConnection connection = buildConnection(url, barcode);
             connection.setInstanceFollowRedirects(true);
             HttpURLConnection.setFollowRedirects(true);

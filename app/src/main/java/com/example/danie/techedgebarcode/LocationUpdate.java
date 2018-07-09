@@ -33,6 +33,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
+import static com.example.danie.util.ToolBarSetup.API;
+
 public class LocationUpdate extends Service {
     private static String TAG = "LOCATION SERVICE";
     private LocationManager locationManager = null;
@@ -115,7 +117,7 @@ public class LocationUpdate extends Service {
              @NonNull
              private HttpURLConnection makeRequest() throws IOException {
                  URL url;
-                 url = new URL("http://developmenttest.clearviewaudit.com/api/v1/dondepod/trackingevent");
+                 url = new URL(API + "/api/v1/dondepod/trackingevent");
                  HttpURLConnection connection = buildConnection(url);
                  outputToConnection(connection);
                  connection.setInstanceFollowRedirects(true);

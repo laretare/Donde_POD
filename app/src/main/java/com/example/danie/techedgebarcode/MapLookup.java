@@ -21,7 +21,7 @@ import com.example.danie.util.models.Origin;
 import com.example.danie.util.ToolBarSetup;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.Geofence;
+
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -72,30 +72,43 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationPlugin;
     private LocationEngine locationEngine;
-    private Location originLocation;
-    private Marker destinationMarker;
-    private Point originPosition;
-    private Point destinationPosition;
     private DirectionsRoute currentRoute;
     private NavigationMapRoute navigationMapRoute;
-
-    private Geofence geofence;
-    private GeofencingClient mGeofencingClient;
-    private GoogleApiClient mGoogleApiClient;
+    private Point originPosition;
+    private Point destinationPosition;
     private LocationRequest locationRequest;
+    private GoogleApiClient mGoogleApiClient;
     private Destination destination;
     private Origin origin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(getIntent() != null){
+            String data = getIntent().getExtras().getString("Source");
+            if(data == null){
+                driverAcceptPackage(savedInstanceState);
+                Intent intent = new Intent(getApplicationContext(), AcceptPODDialogFragmentActivity.class);
+                intent.putExtra("pickup", true);
+                startActivity(intent);
+            }
+            else if (data.equals("from CaptureSignature")){
+                driverAcceptPackage(savedInstanceState);
+            }
+        }
+
+
+
+    }
+
+    private void driverAcceptPackage(Bundle savedInstanceState) {
         mGoogleApiClient = new GoogleApiClient.Builder(this, this, this).addApi(LocationServices.API).build();
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.scanned);
-        map = (MapView) findViewById(R.id.mapView);
+        map = findViewById(R.id.mapView);
         destination = getDestination();
         origin = getOrigin();
         setupGui(destination, origin);
-        mGeofencingClient = LocationServices.getGeofencingClient(this);
+        LocationServices.getGeofencingClient(this);
 
         if (destination == null) {
             handleNullDestination();
@@ -104,6 +117,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             map.getMapAsync(new CustomOnMapReadyCallback(origin, destination) );
         }
     }
+
     @Override
     protected void onNewIntent (Intent intent){
      setIntent(intent);
@@ -120,19 +134,19 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     }
 
     private Origin getOrigin() {
-        Origin origin = null;
+        Origin origin;
         origin = (Origin) getIntent().getSerializableExtra("Origin");
         return origin;
     }
 
     private void setupGui(Destination temp, Origin origin) {
         TextView originName;
-        originName = (TextView) findViewById(R.id.companyPickup);
-        TextView originNumber = (TextView) findViewById(R.id.pickupAddress);
-        TextView originStreet = (TextView) findViewById(R.id.pickupNumber);
-        TextView destinationName = (TextView) this.<View>findViewById(R.id.deliveryCompany);
-        TextView destinationStreet = (TextView) findViewById(R.id.deliveryStreet);
-        TextView destinationNumber = (TextView) findViewById(R.id.deliveryNumber);
+        originName =  findViewById(R.id.companyPickup);
+        TextView originNumber =  findViewById(R.id.pickupAddress);
+        TextView originStreet =  findViewById(R.id.pickupNumber);
+        TextView destinationName = this.findViewById(R.id.deliveryCompany);
+        TextView destinationStreet =  findViewById(R.id.deliveryStreet);
+        TextView destinationNumber = findViewById(R.id.deliveryNumber);
         originName.setText(origin.getCompany());
         originStreet.setText(origin.getAddress());
         originNumber.setText(String.format("%s\t%s", origin.getPhone(), origin.getName()));
@@ -193,7 +207,6 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
 
         Location lastLocation = locationEngine.getLastLocation();
         if (lastLocation != null) {
-            originLocation = lastLocation;
             setCameraPosition(lastLocation);
         } else {
             locationEngine.addLocationEngineListener(this);
@@ -233,7 +246,6 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
-            originLocation = location;
             setCameraPosition(location);
             locationEngine.removeLocationEngineListener(this);
         }
@@ -337,27 +349,17 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         //required throwaway method
     }
 
-    private boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        assert manager != null;
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 
     class DirectionsResponseCallback implements Callback<DirectionsResponse> {
         @Override
-        public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
+        public void onResponse(@NonNull Call<DirectionsResponse> call, @NonNull Response<DirectionsResponse> response) {
             Log.d(TAG, "Response code: " + response.code());
 
             if (handleRouteProblems(response)) {
                 return;
             }
 
+            assert response.body() != null;
             currentRoute = response.body().routes().get(0);
             drawRouteOnMap();
         }
@@ -376,9 +378,12 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             if (response.body() == null) {
                 Log.e(TAG, "No routes found, make sure you set the right user and access token.");
                 return true;
-            } else if (response.body().routes().size() < 1) {
-                Log.e(TAG, "No routes found");
-                return true;
+            } else {
+
+                if (response.body().routes().size() < 1) {
+                    Log.e(TAG, "No routes found");
+                    return true;
+                }
             }
             return false;
         }
@@ -394,7 +399,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         private Destination destination;
         private Origin origin;
 
-        public CustomOnMapReadyCallback(Origin origin, Destination destination) {
+        CustomOnMapReadyCallback(Origin origin, Destination destination) {
             this.destination = destination;
             this.origin = origin;
         }
@@ -408,22 +413,17 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             LatLng destinationCoord = getLatLongFromPlace(destination.getAddress());
 
             if(destinationCoord != null && originCoord != null){
-                destinationMarker = mapboxMap.addMarker(new MarkerOptions()
+                Marker destinationMarker = mapboxMap.addMarker(new MarkerOptions()
                         .position(destinationCoord)
                 );
                 destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
-
                 originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
                 getRoute(originPosition, destinationPosition);
-                Button button = (Button) findViewById(R.id.sendDriver);
+                Button button = findViewById(R.id.sendDriver);
                 button.setOnClickListener( new ViewOnClickListener() );
-                Button settingBtn = (Button) findViewById(R.id.settings);
-                settingBtn.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        Intent settings = new Intent(MapLookup.this, Settings.class);
-                    }
+                Button settingBtn = findViewById(R.id.settings);
+                settingBtn.setOnClickListener(v -> {
+                    Intent settings = new Intent(MapLookup.this, Settings.class);
                 });
             } else {
                 Toast.makeText(getApplicationContext(), "Error missing Coordinates", Toast.LENGTH_LONG).show();
@@ -451,21 +451,20 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
 
         @SuppressLint("MissingPermission")
         public void onClick(View v) {
-//            Point origin = originPosition;
-//            Point destination = destinationPosition;
-//
-//            locationRequest = getLocationRequest();
-//
-//            if ( ! PermissionsManager.areLocationPermissionsGranted(MapLookup.this)) {
-//                permissionsManager = new PermissionsManager(MapLookup.this);
-//                permissionsManager.requestLocationPermissions(MapLookup.this);
-//            }
-//
-//
-//            Log.v(TAG, "About to start Location Service");
-//            startUserService();
-            Intent intent = new Intent(getApplicationContext(), CaptureSignature.class);
-            startActivity(intent);
+            Point origin = originPosition;
+            Point destination = destinationPosition;
+
+            locationRequest = getLocationRequest();
+
+            if ( ! PermissionsManager.areLocationPermissionsGranted(MapLookup.this)) {
+                permissionsManager = new PermissionsManager(MapLookup.this);
+                permissionsManager.requestLocationPermissions(MapLookup.this);
+            }
+
+
+            Log.v(TAG, "About to start Location Service");
+            startUserService();
+
 
 
         }

@@ -82,6 +82,11 @@
 
         <activity android:name=".GeofencePopupActivity"
                   android:theme="@android:style/Theme.Dialog"/>
+
+        <activity android:name=".PhotoActivity" />
+
+        <activity android:name=".AcceptPODDialogFragmentActivity"
+            android:theme="@android:style/Theme.Dialog"/>
         <service android:enabled="true" android:name="com.example.danie.techedgebarcode.LocationUpdate" android:process=":location_update" />
         <service android:enabled="true" android:name="com.example.danie.techedgebarcode.LocationService" android:process=":location_service" />
         <provider

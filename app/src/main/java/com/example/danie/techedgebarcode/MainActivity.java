@@ -36,9 +36,12 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
+
+import static com.example.danie.util.ToolBarSetup.API;
 
 
 /**
@@ -65,14 +68,12 @@ public class MainActivity extends MainActivityUtil {
         } else {
             userName.setText(R.string.Error_bad_bol);
         }
-        mSign.setOnClickListener(v -> {
-            dispatchTakePictureIntent();
-        });
+        mSign.setOnClickListener(v -> dispatchTakePictureIntent());
     }
 
     private File createImageFile() throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String timeStamp = DateFormat.getDateInstance().format(new Date());
         String imageFileName = "PNG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
@@ -100,7 +101,7 @@ public class MainActivity extends MainActivityUtil {
                 try {
                     photoFile = createImageFile();
                 } catch (IOException ex) {
-
+                        ex.printStackTrace();
                 }
                 // Continue only if the File was successfully created
                 if (photoFile != null) {
@@ -135,8 +136,7 @@ public class MainActivity extends MainActivityUtil {
         bmOptions.inSampleSize = scaleFactor;
         bmOptions.inPurgeable = true;
 
-        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-        return bitmap;
+        return BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
     }
 
     protected Class<?> getMapLookupClass(){
@@ -163,9 +163,9 @@ public class MainActivity extends MainActivityUtil {
 
 
             AsyncTask.execute(() -> {
-                URL url = null;
+                URL url;
                 try {
-                    url = new URL("http://192.168.1.113:3000/api/v1/dondepod/upload_image");
+                    url = new URL(API + "/api/v1/dondepod/upload_image");
                     Bitmap imageBitmap = setPic();
                     HttpURLConnection connection = getHttpURLConnection(url);
                     sendImage(imageBitmap, connection);

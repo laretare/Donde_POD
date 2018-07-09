@@ -16,6 +16,9 @@ import java.security.NoSuchAlgorithmException;
 public class ToolBarSetup {
     public static String BOL_NUMBER;
     public static String SHIPMENT_ID;
+//    public static String API = "http://developmenttest.clearviewaudit.com/";
+//    public static String API = "http://api.dondepod.com/";
+    public static String API = "http://192.168.1.79:3000/";
    public static String hashMD5 (String s){
         try {
             // Create MD5 Hash

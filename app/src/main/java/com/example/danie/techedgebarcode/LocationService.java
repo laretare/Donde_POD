@@ -43,6 +43,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
+import static com.example.danie.util.ToolBarSetup.API;
 
 
 public class LocationService extends Service {
@@ -52,7 +53,7 @@ public class LocationService extends Service {
     private LocationManager locationManager = null;
     private static final int locationUpdateTime = 500;
     private static final float location_Distance = 10f;
-    private  String bol_Number = null;
+    private String bol_Number = null;
     private HttpURLConnection connection;
     LocationListener[] mLocationListeners;
     Destination destination;
@@ -243,7 +244,7 @@ public class LocationService extends Service {
             @NonNull
             private HttpURLConnection makeRequest() throws IOException {
                 URL url;
-                url = new URL("http://api.dondepod.com/api/v1/dondepod/trackingevent");
+                url = new URL( API + "/api/v1/dondepod/trackingevent");
                 HttpURLConnection connection = buildConnection(url);
                 outputToConnection(connection);
                 connection.setInstanceFollowRedirects(true);
