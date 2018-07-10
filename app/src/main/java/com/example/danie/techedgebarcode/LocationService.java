@@ -144,8 +144,7 @@ public class LocationService extends Service {
          }
      }
 
-    private class LocationListener implements android.location.LocationListener
-    {
+    private class LocationListener implements android.location.LocationListener {
         Location mLastLocation;
         NotificationManager notificationManager;
         Context context;

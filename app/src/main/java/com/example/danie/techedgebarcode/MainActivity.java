@@ -63,6 +63,7 @@ public class MainActivity extends MainActivityUtil {
         Uri uriData = getIntent().getData();
         if( uriData != null && uriIsValid(uriData)) {
            String bol =  uriData.getQueryParameter("bol");
+           ToolBarSetup.BOL_NUMBER = bol;
            InternalRunnable ir = new InternalRunnable(bol);
            AsyncTask.execute(ir);
         } else {
@@ -78,7 +79,7 @@ public class MainActivity extends MainActivityUtil {
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
-                ".png",         /* suffix */
+                ".png",   /* suffix */
                 storageDir      /* directory */
         );
 

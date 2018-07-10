@@ -16,10 +16,11 @@ import java.security.NoSuchAlgorithmException;
 public class ToolBarSetup {
     public static String BOL_NUMBER;
     public static String SHIPMENT_ID;
-//    public static String API = "http://developmenttest.clearviewaudit.com/";
-//    public static String API = "http://api.dondepod.com/";
+//  public static String API = "http://developmenttest.clearviewaudit.com/";
+//  public static String API = "http://api.dondepod.com/";
+    public static String DONDEPOD_CODE;
     public static String API = "http://192.168.1.79:3000/";
-   public static String hashMD5 (String s){
+    public static String hashMD5 (String s){
         try {
             // Create MD5 Hash
             MessageDigest digest = MessageDigest.getInstance("MD5");
@@ -38,8 +39,7 @@ public class ToolBarSetup {
         return "";
     }
     public static void setupToolBar(AppCompatActivity activity, int id) {
-        Toolbar myChildToolbar =
-                (Toolbar) activity.findViewById(id);
+        Toolbar myChildToolbar = activity.findViewById(id);
         activity.setSupportActionBar(myChildToolbar);
 
         // Get a support ActionBar corresponding to this toolbar

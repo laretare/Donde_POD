@@ -31,10 +31,7 @@ import static com.example.danie.util.ToolBarSetup.API;
  */
 
 public abstract class MainActivityUtil extends AppCompatActivity {
-//    private static final int RC_BARCODE_CAPTURE = 9001;
     protected static final String TAG = "BarcodeMain";
-//    static final int REQUEST_IMAGE_CAPTURE = 1;
-    protected Button scanBtn, pictureBtn;
     protected TextView userName, textComment;
     protected static Origin origin;
     protected static Destination destination;
@@ -139,9 +136,10 @@ public abstract class MainActivityUtil extends AppCompatActivity {
                     origin = gson.fromJson(jsonReader, Origin.class);
                 } else if (name.equals("destination_stop")) {
                     destination = gson.fromJson(jsonReader, Destination.class);
-
                 } else if(name.equals("shipment_id")) {
                     ToolBarSetup.SHIPMENT_ID = jsonReader.nextString();
+                } else if(name.equals("donde_pod_code")){
+                    ToolBarSetup.DONDEPOD_CODE = jsonReader.nextString();
                 }
                 else {
                     jsonReader.skipValue();
