@@ -191,7 +191,7 @@ public class LocationService extends Service {
             stackBuilder.addNextIntentWithParentStack(notificationIntent);
             PendingIntent pendingIntent = stackBuilder.getPendingIntent( 0, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            if (location.distanceTo(destinationLocation) > 50) {
+            if (location.distanceTo(destinationLocation) > 1600) {
                 if ( city == null ){
                     mBuilder = new NotificationCompat.Builder(getApplicationContext(), "DondePod")
                             .setContentTitle("Shipment current location")

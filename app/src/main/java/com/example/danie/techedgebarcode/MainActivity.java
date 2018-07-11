@@ -59,7 +59,6 @@ public class MainActivity extends MainActivityUtil {
         userName =  findViewById(R.id.userName);
         mImageView =  findViewById(R.id.imageView);
         textComment = findViewById(R.id.textComment);
-        Button mSign = findViewById(R.id.signature);
         Uri uriData = getIntent().getData();
         if( uriData != null && uriIsValid(uriData)) {
            String bol =  uriData.getQueryParameter("bol");
@@ -69,7 +68,7 @@ public class MainActivity extends MainActivityUtil {
         } else {
             userName.setText(R.string.Error_bad_bol);
         }
-        mSign.setOnClickListener(v -> dispatchTakePictureIntent());
+
     }
 
     private File createImageFile() throws IOException {
@@ -88,35 +87,7 @@ public class MainActivity extends MainActivityUtil {
         return image;
     }
 
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA}, 0);
-        } else {
-            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                // Create the File where the photo should go
-                File photoFile = null;
-                try {
-                    photoFile = createImageFile();
-                } catch (IOException ex) {
-                        ex.printStackTrace();
-                }
-                // Continue only if the File was successfully created
-                if (photoFile != null) {
-                    Uri photoURI = FileProvider.getUriForFile(this,
-                            "com.example.danie.techedgebarcode",
-                            photoFile);
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-                }
-            }
-        }
 
-
-    }
     private Bitmap setPic() {
         // Get the dimensions of the View
         int targetW = 300;

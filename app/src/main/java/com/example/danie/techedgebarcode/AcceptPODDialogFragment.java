@@ -31,15 +31,11 @@ public class AcceptPODDialogFragment extends DialogFragment {
                         intent = new Intent(getContext(), CaptureSignature.class);
                         intent.putExtra("pickup", bundle.getBoolean("pickup"));
                     }
-
                     try {
                         buildRequest();
-
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
-
                     startActivity(intent);
                 })
                 .setNegativeButton("Decline", (dialog, which) -> {

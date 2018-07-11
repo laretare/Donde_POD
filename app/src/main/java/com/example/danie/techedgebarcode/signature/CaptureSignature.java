@@ -3,6 +3,7 @@ package com.example.danie.techedgebarcode.signature;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
@@ -49,7 +50,7 @@ import org.json.JSONObject;
 import static com.example.danie.util.ToolBarSetup.API;
 
 @SuppressWarnings("ALL")
-public class CaptureSignature extends Activity {
+public class CaptureSignature extends AppCompatActivity {
     private boolean pickup;
     LinearLayout mContent;
     signature mSignature;
@@ -71,6 +72,7 @@ public class CaptureSignature extends Activity {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         pickup = (Boolean) getIntent().getSerializableExtra("pickup");
+        ToolBarSetup.setupToolBar(this, R.id.my_child_toolbar);
         if (pickup == true){
             setContentView(R.layout.pickup_signature);
         } else {
@@ -79,7 +81,6 @@ public class CaptureSignature extends Activity {
         tempDir = Environment.getExternalStorageDirectory() + "/" + getResources().getString(R.string.external_dir) + "/";
         ContextWrapper cw = new ContextWrapper(getApplicationContext());
         File directory = cw.getDir(getResources().getString(R.string.external_dir), Context.MODE_PRIVATE);
-
         prepareDirectory();
         uniqueId = getTodaysDate() + "_" + getCurrentTime() + "_" + Math.random();
         current = uniqueId + ".png";
