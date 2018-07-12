@@ -71,21 +71,21 @@ public class MainActivity extends MainActivityUtil {
 
     }
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = DateFormat.getDateInstance().format(new Date());
-        String imageFileName = "PNG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".png",   /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
+//    private File createImageFile() throws IOException {
+//        // Create an image file name
+//        String timeStamp = DateFormat.getDateInstance().format(new Date());
+//        String imageFileName = "PNG_" + timeStamp + "_";
+//        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+//        File image = File.createTempFile(
+//                imageFileName,  /* prefix */
+//                ".png",   /* suffix */
+//                storageDir      /* directory */
+//        );
+//
+//        // Save a file: path for use with ACTION_VIEW intents
+//        mCurrentPhotoPath = image.getAbsolutePath();
+//        return image;
+//    }
 
 
     private Bitmap setPic() {
