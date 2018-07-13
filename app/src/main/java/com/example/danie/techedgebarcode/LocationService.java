@@ -1,12 +1,14 @@
 package com.example.danie.techedgebarcode;
 
 
+import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TaskStackBuilder;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 
 import android.location.Address;
@@ -14,6 +16,7 @@ import android.location.Geocoder;
 import android.location.Location;
 
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,6 +28,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Base64;
 import android.util.Log;
 
+import com.example.danie.techedgebarcode.signature.CaptureSignature;
 import com.example.danie.util.driver.Driver;
 import com.example.danie.util.models.Destination;
 import com.example.danie.util.models.Origin;
@@ -216,7 +220,7 @@ public class LocationService extends Service {
                 mLastLocation.set(location);
                 intent.putExtra("destination", destination);
                 endOfTracking(mLastLocation);
-                startActivity(intent);
+                makePopup();
                 Log.v(TAG, "Got to destination");
                 stopSelf();
             }
@@ -224,6 +228,26 @@ public class LocationService extends Service {
             mLastLocation.set(location);
             LocationService.LocationListener.InternalRunnable ir = new LocationService.LocationListener.InternalRunnable();
             AsyncTask.execute(ir);
+        }
+        private void makePopup() {
+            Driver driver = new Driver("bob", "jones", "555-555-5555");
+            AlertDialog.Builder popup = new AlertDialog.Builder(getApplicationContext());
+            popup.setMessage("You have arrived.")
+                    .setPositiveButton("Deliver", (DialogInterface dialog, int which) -> {
+                        Intent intent = null;
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                            intent = new Intent(getApplicationContext(), CaptureSignature.class);
+                        }
+                        startActivity(intent);
+                    })
+                    .setNeutralButton("Call Location", (dialog, which) -> {
+                        Intent callIntent = new Intent(Intent.ACTION_DIAL);
+                        callIntent.setData(Uri.parse("tel:" + driver.getPhonenumber()));
+                        startActivity(callIntent);
+
+                    });
+            AlertDialog alertDialog = popup.create();
+            alertDialog.show();
         }
         class InternalRunnable implements Runnable {
 

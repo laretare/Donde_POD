@@ -2,7 +2,9 @@ package com.example.danie.techedgebarcode;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
@@ -55,11 +57,16 @@ import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static com.example.danie.util.ToolBarSetup.API;
 
 /**
  * Created by Daniel Menard on 1/25/2018.
@@ -67,15 +74,11 @@ import retrofit2.Response;
 
 public class MapLookup extends AppCompatActivity implements LocationEngineListener, PermissionsListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = "DirectionsActivity";
-    private MapView map;
-    private MapboxMap mMap;
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationPlugin;
     private LocationEngine locationEngine;
     private DirectionsRoute currentRoute;
     private NavigationMapRoute navigationMapRoute;
-    private Point originPosition;
-    private Point destinationPosition;
     private LocationRequest locationRequest;
     private GoogleApiClient mGoogleApiClient;
     private Destination destination;
@@ -87,9 +90,10 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
             String data = getIntent().getExtras().getString("Source");
             if(data == null){
                 driverAcceptPackage(savedInstanceState);
-                Intent intent = new Intent(getApplicationContext(), AcceptPODDialogFragmentActivity.class);
-                intent.putExtra("pickup", true);
-                startActivity(intent);
+//                Intent intent = new Intent(getApplicationContext(), AcceptPODDialogFragmentActivity.class);
+//                intent.putExtra("pickup", true);
+//                startActivity(intent);
+                makePopup();
             }
             else if (data.equals("from CaptureSignature")){
                 driverAcceptPackage(savedInstanceState);
@@ -100,11 +104,51 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
 
     }
 
+    private void makePopup() {
+        AlertDialog.Builder popup = new AlertDialog.Builder(this);
+        popup.setTitle("Accept?")
+                .setPositiveButton("Accept", (DialogInterface dialog, int which) -> {
+                    Intent intent = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        intent = new Intent(this, CaptureSignature.class);
+                        intent.putExtra("pickup", true);
+                    }
+                    try {
+                        buildRequest();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    startActivity(intent);
+                })
+                .setNegativeButton("Decline", (dialog, which) -> {
+
+                });
+        AlertDialog alertDialog = popup.create();
+        alertDialog.show();
+    }
+
+    private void buildRequest() throws IOException {
+
+        URL url = new URL(API + "/api/v1/dondepod/mark_that_driver_accepted_shipment");
+        HttpURLConnection connection = buildConnection(url);
+        connection.setInstanceFollowRedirects(true);
+        HttpURLConnection.setFollowRedirects(true);
+    }
+
+
+    @NonNull
+    private HttpURLConnection buildConnection(URL apiUrl) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("donde_pod_code", ToolBarSetup.DONDEPOD_CODE);
+        connection.setRequestProperty("Content-Type", "application/json");
+        return connection;
+    }
+
+
     private void driverAcceptPackage(Bundle savedInstanceState) {
         mGoogleApiClient = new GoogleApiClient.Builder(this, this, this).addApi(LocationServices.API).build();
-        Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.scanned);
-        map = findViewById(R.id.mapView);
         destination = getDestination();
         origin = getOrigin();
         setupGui(destination, origin);
@@ -112,9 +156,6 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
 
         if (destination == null) {
             handleNullDestination();
-        } else {
-            map.onCreate(savedInstanceState);
-            map.getMapAsync(new CustomOnMapReadyCallback(origin, destination) );
         }
     }
 
@@ -154,6 +195,8 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         destinationStreet.setText(temp.getAddress());
         destinationNumber.setText(String.format("%s %s", temp.getPhone(), temp.getName()));
         ToolBarSetup.setupToolBar(this, R.id.my_child_toolbar);
+        Button button = findViewById(R.id.sendDriver);
+        button.setOnClickListener( new ViewOnClickListener() );
     }
 
     private void startUserService() {
@@ -167,29 +210,8 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     }
 
 
-    private void getRoute(Point origin, Point destination) {
-        NavigationRoute.builder()
-                .accessToken(Mapbox.getAccessToken())
-                .origin(origin)
-                .destination(destination)
-                .build()
-                .getRoute(new DirectionsResponseCallback());
-    }
 
-    @SuppressWarnings( {"MissingPermission"})
-    private void enableLocationPlugin() {
-        // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-            initializeLocationEngine();
 
-            locationPlugin = new LocationLayerPlugin(map, mMap, locationEngine);
-            preventLogMessages();
-            locationPlugin.setLocationLayerEnabled(true);
-        } else {
-            permissionsManager = new PermissionsManager(this);
-            permissionsManager.requestLocationPermissions(this);
-        }
-    }
 
     private void preventLogMessages() {
         Location location = new Location("");
@@ -198,25 +220,6 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         locationPlugin.forceLocationUpdate(location);
     }
 
-    @SuppressWarnings( {"MissingPermission"})
-    private void initializeLocationEngine() {
-        locationEngine = new LocationEngineProvider(this).obtainBestLocationEngineAvailable();
-        locationEngine.setPriority(LocationEnginePriority.HIGH_ACCURACY);
-        locationEngine.activate();
-
-
-        Location lastLocation = locationEngine.getLastLocation();
-        if (lastLocation != null) {
-            setCameraPosition(lastLocation);
-        } else {
-            locationEngine.addLocationEngineListener(this);
-        }
-    }
-
-    private void setCameraPosition(Location location) {
-         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(location.getLatitude(), location.getLongitude()), 13));
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -231,7 +234,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     @Override
     public void onPermissionResult(boolean granted) {
         if (granted) {
-            enableLocationPlugin();
+
         } else {
             finish();
         }
@@ -246,7 +249,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
-            setCameraPosition(location);
+
             locationEngine.removeLocationEngineListener(this);
         }
     }
@@ -264,7 +267,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         if (locationPlugin != null) {
             locationPlugin.onStart();
         }
-        map.onStart();
+
     }
 
     @Override
@@ -277,60 +280,39 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
         if (locationPlugin != null) {
             locationPlugin.onStop();
         }
-        map.onStop();
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        map.onDestroy();
         if (locationEngine != null) {
             locationEngine.deactivate();
         }
     }
 
-// gets the lat and lng from a location
-    public LatLng getLatLongFromPlace(String place) {
-        try {
-            Geocoder selected_place_geocoder = new Geocoder(getApplicationContext());
-            List<Address> address;
-
-            address = selected_place_geocoder.getFromLocationName(place, 5);
-
-            if (address != null) {
-                Address location = address.get(0);
-                return new LatLng(location.getLatitude(), location.getLongitude());
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     @Override
     public void onResume() {
         super.onResume();
-        map.onResume();
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        map.onPause();
+
     }
 
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        map.onLowMemory();
+
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        map.onSaveInstanceState(outState);
     }
 
 
@@ -350,94 +332,11 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
     }
 
 
-    class DirectionsResponseCallback implements Callback<DirectionsResponse> {
-        @Override
-        public void onResponse(@NonNull Call<DirectionsResponse> call, @NonNull Response<DirectionsResponse> response) {
-            Log.d(TAG, "Response code: " + response.code());
 
-            if (handleRouteProblems(response)) {
-                return;
-            }
 
-            assert response.body() != null;
-            currentRoute = response.body().routes().get(0);
-            drawRouteOnMap();
-        }
 
-        private void drawRouteOnMap() {
-            if (navigationMapRoute != null) {
-                navigationMapRoute.removeRoute();
-            } else {
-                Log.v(TAG, "mMap:"+mMap);
-                navigationMapRoute = new NavigationMapRoute(null, map, mMap, R.style.NavigationMapRoute);
-            }
-            navigationMapRoute.addRoute(currentRoute);
-        }
 
-        private boolean handleRouteProblems(Response<DirectionsResponse> response) {
-            if (response.body() == null) {
-                Log.e(TAG, "No routes found, make sure you set the right user and access token.");
-                return true;
-            } else {
 
-                if (response.body().routes().size() < 1) {
-                    Log.e(TAG, "No routes found");
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-            Log.e(TAG, "Error: " + throwable.getMessage());
-        }
-    }
-
-    class CustomOnMapReadyCallback implements OnMapReadyCallback {
-
-        private Destination destination;
-        private Origin origin;
-
-        CustomOnMapReadyCallback(Origin origin, Destination destination) {
-            this.destination = destination;
-            this.origin = origin;
-        }
-
-        @Override
-        public void onMapReady(final MapboxMap mapboxMap) {
-            mMap = mapboxMap;
-            enableLocationPlugin();
-
-            LatLng originCoord = getLatLongFromPlace(origin.getAddress());
-            LatLng destinationCoord = getLatLongFromPlace(destination.getAddress());
-
-            if(destinationCoord != null && originCoord != null){
-                Marker destinationMarker = mapboxMap.addMarker(new MarkerOptions()
-                        .position(destinationCoord)
-                );
-                destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
-                originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
-                getRoute(originPosition, destinationPosition);
-                Button button = findViewById(R.id.sendDriver);
-                button.setOnClickListener( new ViewOnClickListener() );
-                Button settingBtn = findViewById(R.id.settings);
-                settingBtn.setOnClickListener(v -> {
-                    Intent settings = new Intent(MapLookup.this, Settings.class);
-                });
-            } else {
-                Toast.makeText(getApplicationContext(), "Error missing Coordinates", Toast.LENGTH_LONG).show();
-            }
-
-        }
-
-        private NavigationLauncherOptions setupNavLauncherOptions(Point origin, Point destination) {
-            return NavigationLauncherOptions.builder()
-                    .origin(origin)
-                    .destination(destination)
-                    .shouldSimulateRoute(true)
-                    .build();
-        }
 
         @NonNull
         private LocationRequest getLocationRequest() {
@@ -451,8 +350,7 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
 
         @SuppressLint("MissingPermission")
         public void onClick(View v) {
-            Point origin = originPosition;
-            Point destination = destinationPosition;
+           ;
 
             locationRequest = getLocationRequest();
 
@@ -472,5 +370,5 @@ public class MapLookup extends AppCompatActivity implements LocationEngineListen
 }
 
 
-}
+
 
