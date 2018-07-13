@@ -2,6 +2,7 @@
 <!--suppress ALL -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -30,25 +31,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:text="Apple max" />
+        android:text="ABC Compnany"
+        tools:textColor="#fff" />
 
     <TextView
         android:id="@+id/pickupAddress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:text="123 foo st" />
+        android:text="123 Main St."
+        android:textAllCaps="false"
+        android:textColor="@color/mapbox_navigation_view_color_accent_text_dark"
+        tools:textColor="white" />
 
     <TextView
         android:id="@+id/pickupNumber"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:text="123-456-7891" />
+        android:text="123-456-7891"
+        tools:textColor="#fff" />
 
     <TextView
         android:id="@+id/deliveryLabel"
-        android:layout_width="match_parent"
+        android:layout_width="337dp"
         android:layout_height="80dp"
         android:layout_weight="0"
         android:text="Delivery"
@@ -60,21 +66,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:text="Apple max" />
+        android:text="Apple max"
+        tools:textColor="#fff" />
 
     <TextView
         android:id="@+id/deliveryStreet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:text="123 foo st" />
+        android:text="123 foo st"
+        tools:textColor="#fff" />
 
     <TextView
         android:id="@+id/deliveryNumber"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:text="123-456-7891" />
+        android:text="123-456-7891"
+        tools:textColor="#fff" />
 
     <Button
         android:id="@+id/sendDriver"

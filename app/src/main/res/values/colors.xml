@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#16365d</color>
+    <color name="colorPrimaryDark">#102846</color>
+    <color name="colorAccent">#6cbd45</color>
     <color name="mapboxWhite">#ffffff</color>
     <color name="mapboxBlue">#4264fb</color>
     <color name="mapboxGrayLight">#c6d2e1</color>
+    <color name="background_material_light">#dfdfdf</color>
+    <color name="text_color_primary">#ffffff</color>
+    <color name="text_color_secondary">#ffffff</color>
+    <color name="secondary_text_material_dark">#ffffff</color>
+    <color name="foreground_material_light">#000000</color>
+    <color name="primary_text_default_material_dark">#f6f2f2</color>
+    <color name="raised_button">#6cbd45</color>
 </resources>
