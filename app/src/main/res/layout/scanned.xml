@@ -1,96 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--suppress ALL -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
+    android:id="@+id/linearLayout3"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/my_child_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:layout_weight="0"
-        android:background="?attr/colorPrimary"
-        android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+    <ImageView
+        android:id="@+id/imageView6"
+        android:layout_width="64dp"
+        android:layout_height="84dp"
+        app:srcCompat="@drawable/Donde_POD_White"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="439dp" />
+
+    <ImageView
+        android:id="@+id/text"
+        android:layout_width="352dp"
+        android:layout_height="131dp"
+        android:background="@drawable/rectangle"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="41dp" />
 
     <TextView
         android:id="@+id/pickupLabel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
+        android:layout_width="384dp"
+        android:layout_height="41dp"
         android:text="Pickup"
         android:textAppearance="@style/TextAppearance.AppCompat.Display2"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/companyPickup"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:text="ABC Compnany"
-        tools:textColor="#fff" />
-
-    <TextView
-        android:id="@+id/pickupAddress"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:text="123 Main St."
-        android:textAllCaps="false"
-        android:textColor="@color/mapbox_navigation_view_color_accent_text_dark"
-        tools:textColor="white" />
-
-    <TextView
-        android:id="@+id/pickupNumber"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:text="123-456-7891"
-        tools:textColor="#fff" />
+        android:textSize="30sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="0dp" />
 
     <TextView
         android:id="@+id/deliveryLabel"
         android:layout_width="337dp"
-        android:layout_height="80dp"
-        android:layout_weight="0"
+        android:layout_height="0dp"
         android:text="Delivery"
         android:textAppearance="@style/TextAppearance.AppCompat.Display2"
-        android:textStyle="bold" />
+        android:textSize="30sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="220dp" />
 
-    <TextView
-        android:id="@+id/deliveryCompany"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:text="Apple max"
-        tools:textColor="#fff" />
+    <ImageView
+        android:id="@+id/text3"
+        android:layout_width="353dp"
+        android:layout_height="131dp"
+        android:background="@drawable/rectangle"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="261dp" />
 
-    <TextView
-        android:id="@+id/deliveryStreet"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:text="123 foo st"
-        tools:textColor="#fff" />
-
-    <TextView
-        android:id="@+id/deliveryNumber"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:text="123-456-7891"
-        tools:textColor="#fff" />
+    <Space
+        android:id="@+id/space"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/sendDriver"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/sendDriver"
-        android:layout_width="match_parent"
-        android:layout_height="66dp"
-        android:layout_weight="0"
+        android:layout_width="356dp"
+        android:layout_height="43dp"
         android:background="#6cbd45"
-        android:text="Confirm Pickup" />
+        android:text="Confirm Pickup"
+        tools:layout_editor_absoluteX="14dp"
+        tools:layout_editor_absoluteY="407dp" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/textView13"
+        android:layout_width="144dp"
+        android:layout_height="21dp"
+        android:text="123 Main St. "
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="108dp"
+        tools:layout_editor_absoluteY="53dp" />
+
+    <TextView
+        android:id="@+id/textView14"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="123.456.7890"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="108dp"
+        tools:layout_editor_absoluteY="107dp" />
+
+    <TextView
+        android:id="@+id/textView16"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="City, State, 12345"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="108dp"
+        tools:layout_editor_absoluteY="74dp" />
+
+    <TextView
+        android:id="@+id/textView17"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Address:"
+        android:textColor="#fff"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="26dp"
+        tools:layout_editor_absoluteY="53dp" />
+
+    <TextView
+        android:id="@+id/textView18"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Phone:"
+        android:textColor="#fff"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="41dp"
+        tools:layout_editor_absoluteY="107dp" />
+
+    <TextView
+        android:id="@+id/textView19"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Address:"
+        android:textColor="#fff"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="23dp"
+        tools:layout_editor_absoluteY="269dp" />
+
+    <TextView
+        android:id="@+id/textView20"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ABC St."
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="108dp"
+        tools:layout_editor_absoluteY="269dp" />
+
+    <TextView
+        android:id="@+id/textView21"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="City, State, 12345"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="108dp"
+        tools:layout_editor_absoluteY="294dp" />
+
+    <TextView
+        android:id="@+id/textView22"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Phone:"
+        android:textColor="#fff"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="41dp"
+        tools:layout_editor_absoluteY="331dp" />
+
+    <TextView
+        android:id="@+id/textView23"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="123.456.7890"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp"
+        tools:layout_editor_absoluteX="108dp"
+        tools:layout_editor_absoluteY="331dp" />
+
+</android.support.constraint.ConstraintLayout>

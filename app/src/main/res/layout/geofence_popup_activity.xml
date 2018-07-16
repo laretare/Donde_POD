@@ -6,6 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="66dp"
+        android:layout_height="131dp"
+        app:srcCompat="@drawable/Donde_POD_White"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="414dp" />
+
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"

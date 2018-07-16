@@ -7,6 +7,42 @@
     android:layout_height="400dp"
     android:orientation="vertical">
 
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/getsign"
+            android:layout_width="149dp"
+            android:layout_height="match_parent"
+            android:layout_weight=".35"
+            android:background="@color/colorAccent"
+            android:text="Next"
+            tools:layout_marginLeft="@dimen/fab_margin_bottom" />
+
+        <Button
+            android:id="@+id/clear"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:layout_weight=".35"
+            android:background="#b8b8b8"
+            android:text="Clear"
+            tools:layout_marginLeft="@dimen/fab_margin_bottom"
+            tools:layout_marginRight="@dimen/fab_margin_bottom" />
+
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="12dp"
+            android:layout_height="50dp"
+            android:layout_marginRight="16dp"
+            android:layout_weight=".30"
+            android:background="#b10000"
+            android:text="Cancel"
+            tools:layout_marginRight="@dimen/fab_margin_bottom" />
+
+    </LinearLayout>
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/my_child_toolbar"
         android:layout_width="575dp"
@@ -88,39 +124,4 @@
         </android.support.constraint.ConstraintLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <Button
-            android:id="@+id/getsign"
-            android:layout_width="149dp"
-            android:layout_height="match_parent"
-            android:layout_weight=".35"
-            android:background="@color/colorAccent"
-            android:text="Next"
-            tools:layout_marginLeft="@dimen/fab_margin_bottom" />
-
-        <Button
-            android:id="@+id/clear"
-            android:layout_width="72dp"
-            android:layout_height="match_parent"
-            android:layout_weight=".35"
-            android:background="#b8b8b8"
-            android:text="Clear"
-            tools:layout_marginLeft="@dimen/fab_margin_bottom"
-            tools:layout_marginRight="@dimen/fab_margin_bottom" />
-
-        <Button
-            android:id="@+id/cancel"
-            android:layout_width="12dp"
-            android:layout_height="50dp"
-            android:layout_marginRight="16dp"
-            android:layout_weight=".30"
-            android:background="#b10000"
-            android:text="Cancel"
-            tools:layout_marginRight="@dimen/fab_margin_bottom" />
-
-    </LinearLayout>
 </LinearLayout>
